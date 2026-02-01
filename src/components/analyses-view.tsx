@@ -3,9 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Calculator, Loader2, Target, TrendingUp } from "lucide-react";
 
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Label,
+  PolarGrid,
+  PolarRadiusAxis,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  XAxis,
+} from "recharts";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -135,11 +149,134 @@ export function AnalysesView({ activeTab }: { activeTab: AnalysesTab }) {
             </Card>
           </div>
 
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+            {/* Area Chart - Revenus */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Évolution des revenus</CardTitle>
+                <CardDescription>Revenus mensuels sur les 6 derniers mois</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={data.revenueByMonth.map((item) => ({
+                        month: item.month,
+                        revenue: item.amount,
+                        expenses: Math.round(item.amount * 0.35),
+                      }))}
+                      margin={{ left: 12, right: 12, top: 12, bottom: 12 }}
+                    >
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                        stroke="#64748b"
+                        fontSize={12}
+                      />
+                      <defs>
+                        <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#eab308" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        dataKey="expenses"
+                        type="monotone"
+                        fill="url(#fillExpenses)"
+                        fillOpacity={0.4}
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                      />
+                      <Area
+                        dataKey="revenue"
+                        type="monotone"
+                        fill="url(#fillRevenue)"
+                        fillOpacity={0.4}
+                        stroke="#eab308"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <div className="flex w-full items-start gap-2 text-sm">
+                  <div className="grid gap-2">
+                    <div className="flex items-center gap-2 leading-none font-medium">
+                      Tendance positive ce mois <TrendingUp className="h-4 w-4" />
+                    </div>
+                    <div className="text-muted-foreground flex items-center gap-2 leading-none">
+                      {data.revenueByMonth[0]?.month} - {data.revenueByMonth[data.revenueByMonth.length - 1]?.month}
+                    </div>
+                  </div>
+                </div>
+              </CardFooter>
+            </Card>
+
+            {/* Radial Chart - Objectif */}
+            <Card className="flex flex-col">
+              <CardHeader className="items-center pb-0">
+                <CardTitle>Objectif mensuel</CardTitle>
+                <CardDescription>Progression vers l&apos;objectif</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 pb-0">
+                <div className="mx-auto aspect-square max-h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadialBarChart
+                      data={[{ name: "Objectif", value: data.objective.percent, fill: "#eab308" }]}
+                      startAngle={90}
+                      endAngle={90 - (data.objective.percent / 100) * 360}
+                      innerRadius="70%"
+                      outerRadius="100%"
+                    >
+                      <RadialBar
+                        dataKey="value"
+                        background={{ fill: "#e2e8f0" }}
+                        cornerRadius={10}
+                      />
+                      <text
+                        x="50%"
+                        y="50%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="fill-foreground"
+                      >
+                        <tspan x="50%" dy="-0.5em" fontSize="32" fontWeight="bold">
+                          {data.objective.percent}%
+                        </tspan>
+                        <tspan x="50%" dy="1.5em" fontSize="14" fill="#64748b">
+                          atteint
+                        </tspan>
+                      </text>
+                    </RadialBarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+              <CardFooter className="flex-col gap-2 text-sm">
+                <div className="flex items-center gap-2 leading-none font-medium">
+                  {formatFCFA(data.objective.current)} / {formatFCFA(data.objective.target)}
+                </div>
+                <div className="text-muted-foreground leading-none">
+                  Objectif de chiffre d&apos;affaires
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Revenus par mois</CardTitle>
-                <CardDescription>Évolution sur 6 mois</CardDescription>
+                <CardDescription>Détail mensuel</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

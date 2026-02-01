@@ -43,12 +43,12 @@ export default function ContactForm() {
               <Link href="/" className="flex items-center gap-2 text-xl sm:text-xl md:text-2xl font-bold text-black">
                 <Image 
                   src="/logo.png" 
-                  alt="AfriLance Logo" 
+                  alt="Tuma Logo" 
                   width={32} 
                   height={32}
                   className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
                 />
-                afrilance
+                Tuma
               </Link>
               <Link 
                 href="/" 
@@ -108,12 +108,12 @@ export default function ContactForm() {
             <Link href="/" className="flex items-center gap-2 text-xl sm:text-xl md:text-2xl font-bold text-black">
               <Image 
                 src="/logo.png" 
-                alt="AfriLance Logo" 
+                alt="Tuma Logo" 
                 width={32} 
                 height={32}
                 className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
               />
-              afrilance
+              Tuma
             </Link>
             <Link 
               href="/" 

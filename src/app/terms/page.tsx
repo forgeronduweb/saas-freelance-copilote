@@ -1,28 +1,22 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ArrowLeft } from 'lucide-react';
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Header simplifié pour contrat */}
-      <header className="bg-white border-b border-gray-200 py-6">
-        <div className="flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32">
-          <Link href="/" className="flex items-center gap-2 text-xl sm:text-xl md:text-2xl font-bold text-black">
-            <Image 
-              src="/logo.png" 
-              alt="AfriLance Logo" 
-              width={32} 
-              height={32}
-              className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
-            />
-            afrilance
+      {/* Header */}
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-slate-900">
+            Tuma
           </Link>
           <Link 
-            href="/#footer" 
-            className="text-gray-600 hover:text-orange-600 transition-colors font-medium"
+            href="/"
+            className="flex items-center gap-2 text-slate-600 hover:text-yellow-600 transition-colors text-sm"
           >
+            <ArrowLeft className="w-4 h-4" />
             Retour
           </Link>
         </div>
@@ -30,191 +24,120 @@ export default function TermsPage() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Conditions Générales d&apos;Utilisation</h1>
-          <p className="text-gray-600 mt-2">Dernière mise à jour : 7 septembre 2025</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Conditions Générales d&apos;Utilisation</h1>
+          <p className="text-slate-600">Dernière mise à jour : Janvier 2026</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
+
+        <div className="space-y-8">
           
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Objet</h2>
-            <div className="space-y-4 text-gray-700">
+          <section className="bg-slate-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">1. Objet</h2>
+            <div className="space-y-3 text-slate-600 text-sm">
               <p>
-                Les présentes Conditions Générales d&apos;Utilisation (CGU) régissent l&apos;utilisation de la plateforme 
-                AfriLance, accessible à l&apos;adresse www.afrilance.com, qui met en relation des freelances et des 
-                clients pour la réalisation de missions professionnelles.
+                Tuma est une plateforme SaaS de gestion d&apos;activité pour freelances. Elle fournit des outils de CRM, facturation, suivi de projets et gestion administrative.
               </p>
               <p>
-                L&apos;utilisation de la plateforme implique l&apos;acceptation pleine et entière des présentes CGU.
+                L&apos;utilisation de la plateforme implique l&apos;acceptation des présentes CGU.
               </p>
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">2. Définitions</h2>
-            <div className="space-y-4 text-gray-700">
-              <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Plateforme :</strong> Le site web AfriLance et ses services associés</li>
-                <li><strong>Utilisateur :</strong> Toute personne utilisant la plateforme</li>
-                <li><strong>Freelance :</strong> Professionnel indépendant proposant ses services</li>
-                <li><strong>Client :</strong> Personne ou entreprise recherchant des services</li>
-                <li><strong>Mission :</strong> Projet ou tâche proposée par un client</li>
-                <li><strong>Mobile Money :</strong> Service de paiement mobile sécurisé</li>
-              </ul>
+          <section className="bg-slate-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">2. Services proposés</h2>
+            <div className="grid sm:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-slate-900 font-medium mb-1">Gestion commerciale</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• CRM et gestion de contacts</li>
+                  <li>• Pipeline de vente</li>
+                  <li>• Devis et propositions</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-slate-900 font-medium mb-1">Administration</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Facturation automatisée</li>
+                  <li>• Suivi des paiements</li>
+                  <li>• Gestion des documents</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-slate-900 font-medium mb-1">Productivité</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Suivi du temps</li>
+                  <li>• Gestion de projets</li>
+                  <li>• Tableau de bord</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-slate-900 font-medium mb-1">Analyses</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Rapports financiers</li>
+                  <li>• Statistiques d&apos;activité</li>
+                  <li>• Prévisionnel</li>
+                </ul>
+              </div>
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">3. Inscription et Compte Utilisateur</h2>
-            <div className="space-y-4 text-gray-700">
-              <h3 className="text-lg font-semibold">3.1 Conditions d&apos;inscription</h3>
+          <section className="bg-slate-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">3. Tarification</h2>
+            <div className="space-y-3 text-slate-600 text-sm">
               <p>
-                L&apos;inscription est gratuite et ouverte à toute personne physique ou morale ayant la capacité 
-                juridique de contracter. L&apos;utilisateur doit fournir des informations exactes et complètes.
+                Tuma fonctionne sur un modèle d&apos;abonnement mensuel ou annuel. <strong className="text-slate-900">Aucune commission n&apos;est prélevée</strong> sur vos revenus ou transactions avec vos clients.
               </p>
-              
-              <h3 className="text-lg font-semibold">3.2 Vérification d&apos;identité</h3>
               <p>
-                AfriLance se réserve le droit de demander des justificatifs d&apos;identité et de vérifier 
-                les informations fournies par les utilisateurs.
-              </p>
-              
-              <h3 className="text-lg font-semibold">3.3 Responsabilité du compte</h3>
-              <p>
-                Chaque utilisateur est responsable de la confidentialité de ses identifiants de connexion 
-                et de toutes les activités effectuées sous son compte.
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">4. Services de la Plateforme</h2>
-            <div className="space-y-4 text-gray-700">
-              <h3 className="text-lg font-semibold">4.1 Pour les clients</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Publication de missions et projets</li>
-                <li>Recherche et sélection de freelances</li>
-                <li>Gestion des contrats et paiements sécurisés</li>
-                <li>Système d&apos;évaluation et de commentaires</li>
-              </ul>
-              
-              <h3 className="text-lg font-semibold">4.2 Pour les freelances</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Création de profil professionnel</li>
-                <li>Candidature aux missions</li>
-                <li>Gestion de portefeuille de projets</li>
-                <li>Réception de paiements via Mobile Money</li>
-              </ul>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">5. Paiements et Commissions</h2>
-            <div className="space-y-4 text-gray-700">
-              <h3 className="text-lg font-semibold">5.1 Système de paiement</h3>
-              <p>
-                Les paiements sont sécurisés via Mobile Money et autres moyens de paiement acceptés. 
-                AfriLance agit en tant qu&apos;intermédiaire de paiement.
-              </p>
-              
-              <h3 className="text-lg font-semibold">5.2 Commissions</h3>
-              <p>
-                AfriLance prélève une commission sur chaque transaction réussie :
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Freelances : 10% du montant de la mission</li>
-                <li>Clients : 3% du montant de la mission</li>
-              </ul>
-              
-              <h3 className="text-lg font-semibold">5.3 Remboursements</h3>
-              <p>
-                Les conditions de remboursement sont détaillées dans notre politique de remboursement.
+                Vous conservez 100% de votre chiffre d&apos;affaires. Les détails des plans tarifaires sont disponibles sur notre page de tarification.
               </p>
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Obligations des Utilisateurs</h2>
-            <div className="space-y-4 text-gray-700">
-              <h3 className="text-lg font-semibold">6.1 Obligations générales</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Respecter les lois et réglementations en vigueur</li>
-                <li>Fournir des informations exactes et à jour</li>
-                <li>Ne pas porter atteinte aux droits de tiers</li>
-                <li>Maintenir la confidentialité des données</li>
-              </ul>
-              
-              <h3 className="text-lg font-semibold">6.2 Interdictions</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Contourner la plateforme pour éviter les commissions</li>
-                <li>Publier du contenu illégal ou offensant</li>
-                <li>Usurper l&apos;identité d&apos;autrui</li>
-                <li>Utiliser des moyens automatisés non autorisés</li>
-              </ul>
+          <section className="bg-slate-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">4. Obligations et responsabilités</h2>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="text-slate-900 font-medium mb-2">Vos engagements :</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Fournir des informations exactes lors de l&apos;inscription</li>
+                  <li>• Maintenir la confidentialité de vos identifiants</li>
+                  <li>• Respecter la législation en vigueur</li>
+                  <li>• Ne pas utiliser la plateforme à des fins illégales</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-slate-900 font-medium mb-2">Nos engagements :</p>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Assurer la disponibilité et la sécurité de la plateforme</li>
+                  <li>• Protéger vos données personnelles</li>
+                  <li>• Fournir un support client réactif</li>
+                  <li>• Ne jamais revendre vos données</li>
+                </ul>
+              </div>
             </div>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">7. Propriété Intellectuelle</h2>
-            <div className="space-y-4 text-gray-700">
+          <section className="bg-slate-50 rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">5. Droit applicable</h2>
+            <div className="space-y-3 text-slate-600 text-sm">
               <p>
-                Les droits de propriété intellectuelle sur les travaux réalisés appartiennent au client, 
-                sauf accord contraire explicite entre les parties.
+                Les présentes CGU sont régies par le droit ivoirien. Tout litige sera soumis à la juridiction des tribunaux d&apos;Abidjan, Côte d&apos;Ivoire.
               </p>
               <p>
-                AfriLance conserve tous les droits sur sa plateforme, sa marque et ses contenus.
+                Pour toute question : <a href="mailto:contact@tuma.app" className="text-yellow-600 hover:underline">contact@tuma.app</a>
               </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Responsabilité et Garanties</h2>
-            <div className="space-y-4 text-gray-700">
-              <p>
-                AfriLance agit en tant qu&apos;intermédiaire et ne peut être tenue responsable de la qualité 
-                des services fournis par les freelances ou du comportement des utilisateurs.
-              </p>
-              <p>
-                La plateforme est fournie &quot;en l&apos;état&quot; sans garantie de disponibilité continue.
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">9. Résiliation</h2>
-            <div className="space-y-4 text-gray-700">
-              <p>
-                Chaque utilisateur peut résilier son compte à tout moment. AfriLance se réserve le droit 
-                de suspendre ou supprimer un compte en cas de violation des présentes CGU.
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Droit Applicable et Juridiction</h2>
-            <div className="space-y-4 text-gray-700">
-              <p>
-                Les présentes CGU sont régies par le droit ivoirien. Tout litige sera soumis à la 
-                juridiction des tribunaux d'Abidjan, Côte d'Ivoire.
-              </p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Contact</h2>
-            <div className="space-y-2 text-gray-700">
-              <p>
-                Pour toute question concernant ces CGU, vous pouvez nous contacter :
-              </p>
-              <p><strong>Responsable légal :</strong> Baho Philomé Evrard</p>
-              <p><strong>Email :</strong> <a href="mailto:legal@afrilance.com" className="text-orange-600 hover:underline">legal@afrilance.com</a></p>
-              <p><strong>Adresse :</strong> Cocody Angré, Rue des Jardins, Abidjan, Côte d'Ivoire</p>
-              <p><strong>Téléphone :</strong> +225 07 XX XX XX XX</p>
             </div>
           </section>
 
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200 py-6">
+        <div className="max-w-4xl mx-auto px-4 text-center text-slate-500 text-sm">
+          © {new Date().getFullYear()} Tuma. Tous droits réservés.
+        </div>
+      </footer>
     </div>
   );
 }

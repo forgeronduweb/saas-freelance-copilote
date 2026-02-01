@@ -6,7 +6,7 @@ export interface JWTPayload {
   userType: 'freelance' | 'client';
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-for-afrilance-platform-2024-minimum-32-chars';
+const JWT_SECRET = process.env.JWT_SECRET || 'build-time-placeholder-secret-minimum-32-characters-long';
 
 /**
  * Vérifie un token JWT - Compatible Edge Runtime

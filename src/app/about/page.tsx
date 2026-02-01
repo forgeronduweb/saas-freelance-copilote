@@ -12,12 +12,12 @@ export default function AboutPage() {
                     <Link href="/" className="flex items-center gap-2 text-xl sm:text-xl md:text-2xl font-bold text-black">
                         <Image 
                             src="/logo.png" 
-                            alt="AfriLance Logo" 
+                            alt="Tuma Logo" 
                             width={32} 
                             height={32}
                             className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"
                         />
-                        afrilance
+                        Tuma
                     </Link>
                     <Link 
                         href="/#footer" 
@@ -37,7 +37,7 @@ export default function AboutPage() {
                             À PROPOS
                         </h1>
                         <div className="text-lg text-gray-700 space-y-2">
-                            <p><strong>AfriLance</strong></p>
+                            <p><strong>Tuma</strong></p>
                             <p>Plateforme de mise en relation freelances-clients</p>
                             <p className="text-sm text-gray-500 mt-4">
                                 Présentation de la plateforme - Version du {new Date().toLocaleDateString('fr-FR')}
@@ -49,7 +49,7 @@ export default function AboutPage() {
                         <section className="mb-8">
                             <h2 className="text-2xl font-semibold text-orange-600 mb-4">Notre Mission</h2>
                             <p className="text-gray-700 leading-relaxed mb-4">
-                                AfriLance est une plateforme innovante qui met en relation les freelances africains avec des entreprises, particuliers et organisations ayant besoin de services professionnels.
+                                Tuma est une plateforme innovante qui met en relation les freelances africains avec des entreprises, particuliers et organisations ayant besoin de services professionnels.
                             </p>
                         </section>
 
@@ -108,7 +108,7 @@ export default function AboutPage() {
                         <section className="mb-8">
                             <h2 className="text-2xl font-semibold text-orange-600 mb-4">Notre Vision</h2>
                             <p className="text-gray-700 leading-relaxed mb-4">
-                                Nous croyons en un avenir où les talents africains peuvent accéder aux opportunités mondiales tout en contribuant au développement économique local. AfriLance est plus qu&apos;une plateforme - c&apos;est un pont vers l&apos;autonomisation professionnelle et la croissance économique durable.
+                                Nous croyons en un avenir où les talents africains peuvent accéder aux opportunités mondiales tout en contribuant au développement économique local. Tuma est plus qu&apos;une plateforme - c&apos;est un pont vers l&apos;autonomisation professionnelle et la croissance économique durable.
                             </p>
                         </section>
                     </div>

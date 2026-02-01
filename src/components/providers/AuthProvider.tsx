@@ -61,8 +61,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const fetchUser = useCallback(async () => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
       const response = await fetch('/api/auth/me', {
         credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       if (response.ok) {

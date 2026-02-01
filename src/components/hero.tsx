@@ -57,6 +57,9 @@ export default function Hero() {
         <Link href="/signup" className="px-8 py-3 bg-yellow-400 text-black rounded-md" onClick={() => setMobileMenuOpen(false)}>
           Commencer
         </Link>
+        <Link href="/login" className="px-8 py-3 border border-yellow-500 text-yellow-600 rounded-md" onClick={() => setMobileMenuOpen(false)}>
+          Connexion
+        </Link>
         <button 
           onClick={() => setMobileMenuOpen(false)}
           className="active:ring-3 active:ring-white aspect-square size-10 p-1 items-center justify-center bg-slate-100 hover:bg-slate-200 transition text-black rounded-md flex"
@@ -111,7 +114,7 @@ export default function Hero() {
           <img 
             src="/heros.png"
             className="w-full rounded-[15px] max-w-4xl shadow-2xl border-t-4 border-l-4 border-r-4 border-yellow-400"
-            alt="AfriLance Dashboard"
+            alt="Tuma Dashboard"
           />
           {/* Gradient fade to benefits */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent" />

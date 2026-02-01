@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const signupSchema = z.object({
   email: z.string().email("Adresse email invalide"),
@@ -21,6 +22,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { refetch } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -69,6 +71,7 @@ export default function SignupPage() {
       }
 
       setSuccess(true);
+      await refetch();
       router.replace('/onboarding/professions');
 
     } catch {

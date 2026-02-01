@@ -12,7 +12,15 @@ interface JWTPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    let token = request.cookies.get('auth-token')?.value;
+
+    // Fallback: Authorization header (Bearer)
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.slice(7).trim();
+      }
+    }
 
     if (!token) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 /**
- * Système de validation centralisé pour AfriLance
+ * Système de validation centralisé pour Tuma
  * Utilise Zod pour une validation type-safe
  */
 

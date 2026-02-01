@@ -7,7 +7,15 @@ import { config } from '@/lib/config';
 export async function GET(request: NextRequest) {
   try {
     // Récupérer le token depuis les cookies
-    const token = request.cookies.get('auth-token')?.value;
+    let token = request.cookies.get('auth-token')?.value;
+
+    // Fallback: Authorization header (Bearer)
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.slice(7).trim();
+      }
+    }
 
     if (!token) {
       return NextResponse.json(

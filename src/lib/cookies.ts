@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { config } from '@/lib/config';
 
 /**
- * Configuration centralisée des cookies pour AfriLance
+ * Configuration centralisée des cookies pour Tuma
  */
 export const cookieConfig = {
   auth: {

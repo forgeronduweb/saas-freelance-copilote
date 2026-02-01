@@ -1,7 +1,7 @@
 import { config } from '@/lib/config';
 
 /**
- * Utilitaires de sécurité pour AfriLance
+ * Utilitaires de sécurité pour Tuma
  */
 
 /**

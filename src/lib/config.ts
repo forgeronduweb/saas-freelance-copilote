@@ -1,6 +1,7 @@
 /**
- * Configuration centralisée pour AfriLance
+ * Configuration centralisée pour Tuma
  * Toutes les variables d'environnement sont gérées ici
+ * IMPORTANT: Ne jamais mettre de données sensibles ici - utiliser les variables d'environnement
  */
 
 // Validation des variables d'environnement requises
@@ -26,35 +27,10 @@ requiredEnvVars.forEach((envVar) => {
 export const config = {
   // Base de données (désactivée pour l'authentification simple)
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/afrilance',
-    name: 'afrilance',
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/',
+    name: 'Tuma',
     enabled: process.env.USE_DATABASE === 'true',
   },
-
-  // Utilisateurs statiques pour l'authentification sans DB
-  staticUsers: [
-    {
-      id: '1',
-      email: 'admin@afrilance.com',
-      password: 'admin123', // En production, utilisez un hash
-      name: 'Administrateur',
-      role: 'admin',
-    },
-    {
-      id: '2', 
-      email: 'freelance@afrilance.com',
-      password: 'freelance123',
-      name: 'Freelance Demo',
-      role: 'freelance',
-    },
-    {
-      id: '3',
-      email: 'client@afrilance.com', 
-      password: 'client123',
-      name: 'Client Demo',
-      role: 'client',
-    },
-  ],
 
   // Authentification
   auth: {
@@ -76,7 +52,7 @@ export const config = {
     port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
     user: process.env.EMAIL_SERVER_USER,
     password: process.env.EMAIL_SERVER_PASSWORD,
-    from: process.env.EMAIL_FROM || 'noreply@afrilance.com',
+    from: process.env.EMAIL_FROM,
   },
 
   // Upload de fichiers
@@ -95,9 +71,9 @@ export const config = {
 
   // Application
   app: {
-    name: process.env.APP_NAME || 'AfriLance',
+    name: process.env.APP_NAME || 'Tuma',
     url: process.env.APP_URL || 'http://localhost:3000',
-    supportEmail: process.env.SUPPORT_EMAIL || 'support@afrilance.com',
+    supportEmail: process.env.SUPPORT_EMAIL,
     environment: process.env.NODE_ENV || 'development',
     debugMode: process.env.DEBUG_MODE === 'true',
   },
@@ -123,7 +99,7 @@ export const config = {
     },
   },
 
-  // Catégories de services AfriLance
+  // Catégories de services
   serviceCategories: {
     'developpement-web': {
       name: 'Développement Web',
@@ -143,7 +119,7 @@ export const config = {
     },
   },
 
-  // Plans tarifaires AfriLance
+  // Plans tarifaires
   plans: {
     gratuit: {
       name: 'Gratuit',

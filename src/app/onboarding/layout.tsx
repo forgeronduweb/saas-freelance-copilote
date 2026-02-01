@@ -21,7 +21,7 @@ export default function OnboardingLayout({
 
   return (
     <div className="h-dvh bg-background flex flex-col overflow-hidden">
-      <main className="flex-1 w-full px-4 pt-8 pb-0 overflow-hidden">
+      <main className="flex-1 w-full px-4 pt-8 pb-28 overflow-hidden">
         <div className="w-full h-full">{children}</div>
       </main>
 

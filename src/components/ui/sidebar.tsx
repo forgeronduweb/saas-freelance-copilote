@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator"
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_MOBILE = "17rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -115,7 +115,7 @@ const SidebarProvider = React.forwardRef<
         <div
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH,
+              "--sidebar-width": isMobile ? SIDEBAR_WIDTH_MOBILE : SIDEBAR_WIDTH,
               "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
               ...style,
             } as React.CSSProperties
@@ -167,7 +167,7 @@ const Sidebar = React.forwardRef<
           )}
           <aside
             className={cn(
-              "fixed inset-y-0 left-0 z-50 flex h-full w-48 flex-col bg-sidebar text-sidebar-foreground border-r transition-transform duration-200",
+              "fixed inset-y-0 left-0 z-50 flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground border-r transition-transform duration-200",
               openMobile ? "translate-x-0" : "-translate-x-full",
               className
             )}
@@ -186,7 +186,7 @@ const Sidebar = React.forwardRef<
         data-state={state}
         className={cn(
           "hidden md:flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r shrink-0 transition-all duration-200 sticky top-0",
-          state === "expanded" ? "w-48" : "w-0 overflow-hidden",
+          state === "expanded" ? "w-[var(--sidebar-width)]" : "w-0 overflow-hidden",
           className
         )}
         {...props}

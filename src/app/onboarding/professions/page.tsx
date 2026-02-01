@@ -220,8 +220,8 @@ export default function ProfessionsOnboardingPage() {
         })}
       </div>
 
-      <div className="fixed bottom-[45px] right-6 z-50 flex justify-end">
-        <Button onClick={onSubmit} disabled={isSaving}>
+      <div className="fixed bottom-[45px] left-6 right-6 z-50 flex justify-end">
+        <Button onClick={onSubmit} disabled={isSaving} className="w-full sm:w-auto">
           {isSaving ? "Enregistrement..." : "Suivant"}
         </Button>
       </div>

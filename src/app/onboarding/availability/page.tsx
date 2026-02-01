@@ -202,11 +202,11 @@ export default function AvailabilityOnboardingPage() {
       </div>
       </div>
 
-      <div className="fixed bottom-[45px] left-6 right-6 z-50 flex justify-center gap-20">
-        <Button variant="outline" onClick={onBack} className="px-16 py-3 rounded-xl">
+      <div className="fixed bottom-[45px] left-6 right-6 z-50 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+        <Button variant="outline" onClick={onBack} className="w-full py-3 rounded-xl sm:w-auto sm:px-16">
           Retour
         </Button>
-        <Button onClick={onSubmit} disabled={isSaving || !availability} className="px-16 py-3 rounded-xl">
+        <Button onClick={onSubmit} disabled={isSaving || !availability} className="w-full py-3 rounded-xl sm:w-auto sm:px-16">
           {isSaving ? "Enregistrement..." : "Terminer"}
         </Button>
       </div>

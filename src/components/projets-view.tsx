@@ -1128,7 +1128,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                           <label htmlFor="date" className="text-sm">
                             Date
@@ -1153,7 +1153,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                           <label className="text-sm">Type</label>
                           <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>

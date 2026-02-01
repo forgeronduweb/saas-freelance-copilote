@@ -267,7 +267,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Separator />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field data-invalid={!!profileForm.formState.errors.firstName}>
                     <FieldLabel>Prénom</FieldLabel>
                     <Input {...profileForm.register("firstName")} placeholder="Votre prénom" />
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-red-500">{profileError}</p>
                 )}
 
-                <Button type="submit" disabled={profileSaving}>
+                <Button type="submit" disabled={profileSaving} className="w-full sm:w-auto">
                   {profileSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : profileSuccess ? (
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                   <Input {...passwordForm.register("currentPassword")} type="password" placeholder="••••••••" />
                   <FieldError errors={[passwordForm.formState.errors.currentPassword]} />
                 </Field>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field data-invalid={!!passwordForm.formState.errors.newPassword}>
                     <FieldLabel>Nouveau mot de passe</FieldLabel>
                     <Input {...passwordForm.register("newPassword")} type="password" placeholder="••••••••" />
@@ -369,7 +369,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-red-500">{passwordError}</p>
                 )}
 
-                <Button type="submit" variant="outline" disabled={passwordSaving}>
+                <Button type="submit" variant="outline" disabled={passwordSaving} className="w-full sm:w-auto">
                   {passwordSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : passwordSuccess ? (
@@ -452,6 +452,7 @@ export default function SettingsPage() {
               <Button
                 variant="destructive"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setDeleteConfirmOpen(true)}
               >
                 Supprimer le compte

@@ -64,18 +64,18 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
   useEffect(() => {
     const fetchPrestataire = async () => {
       try {
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const data = await response.json();
-          setPrestataire({
-            nom: `${data.firstName || ""} ${data.lastName || ""}`.trim() || "Freelance",
-            activite: data.skills?.join(", ") || "Développeur Web",
-            telephone: data.phone || "",
-            email: data.email || "",
-            ville: data.city || "Abidjan",
-            pays: data.country || "Côte d'Ivoire",
-          });
-        }
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (!response.ok) throw new Error("Unauthorized");
+        const json = await response.json();
+        const data = json?.user ?? {};
+        setPrestataire({
+          nom: `${data.firstName || ""} ${data.lastName || ""}`.trim() || "Freelance",
+          activite: Array.isArray(data.skills) ? data.skills.join(", ") : "Développeur Web",
+          telephone: data.phone || "",
+          email: data.email || "",
+          ville: data.city || "Abidjan",
+          pays: data.country || "Côte d'Ivoire",
+        });
       } catch (error) {
         console.error("Erreur chargement profil:", error);
         setPrestataire({
@@ -107,16 +107,16 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* En-tête automatique */}
-      <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         <div>
           <p className="font-semibold">N° Facture: {numeroFacture}</p>
           {formData.referenceDevis && (
             <p className="text-muted-foreground">Réf. Devis: {formData.referenceDevis}</p>
           )}
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p>Date: {dateEmission}</p>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
               <label className="text-sm font-medium">Téléphone *</label>
               <Input
@@ -205,7 +205,7 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Montant total (FCFA) *</label>
             <Input
@@ -236,7 +236,7 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Mode de paiement</label>
             <Select
@@ -299,11 +299,11 @@ export default function InvoiceForm({ onSubmit, onCancel, devisReference }: Invo
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Annuler
         </Button>
-        <Button type="submit">Créer la facture</Button>
+        <Button type="submit" className="w-full sm:w-auto">Créer la facture</Button>
       </div>
     </form>
   );

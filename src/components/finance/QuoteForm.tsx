@@ -89,18 +89,18 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
   useEffect(() => {
     const fetchPrestataire = async () => {
       try {
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const data = await response.json();
-          setPrestataire({
-            nom: `${data.firstName || ""} ${data.lastName || ""}`.trim() || "Freelance",
-            activite: data.skills?.join(", ") || "Développeur Web",
-            telephone: data.phone || "",
-            email: data.email || "",
-            ville: data.city || "Abidjan",
-            pays: data.country || "Côte d'Ivoire",
-          });
-        }
+        const response = await fetch("/api/auth/me", { credentials: "include" });
+        if (!response.ok) throw new Error("Unauthorized");
+        const json = await response.json();
+        const data = json?.user ?? {};
+        setPrestataire({
+          nom: `${data.firstName || ""} ${data.lastName || ""}`.trim() || "Freelance",
+          activite: Array.isArray(data.skills) ? data.skills.join(", ") : "Développeur Web",
+          telephone: data.phone || "",
+          email: data.email || "",
+          ville: data.city || "Abidjan",
+          pays: data.country || "Côte d'Ivoire",
+        });
       } catch (error) {
         console.error("Erreur chargement profil:", error);
         setPrestataire({
@@ -188,13 +188,13 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* En-tête automatique */}
-      <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         <div>
           <p className="font-semibold">N° Devis: {numeroDevis}</p>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p>Date: {dateEmission}</p>
         </div>
       </div>
@@ -253,7 +253,7 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="grid gap-2">
               <label className="text-sm font-medium">Téléphone *</label>
               <Input
@@ -301,7 +301,7 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Délai de réalisation</label>
             <Input
@@ -321,7 +321,7 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Montant total (FCFA) *</label>
             <Input
@@ -345,16 +345,16 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
         </div>
 
         <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardHeader className="pb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-sm">Actions à réaliser</CardTitle>
-            <Button type="button" variant="outline" size="sm" onClick={addAction}>
+            <Button type="button" variant="outline" size="sm" onClick={addAction} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Ajouter
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
             {formData.actions.map((action, index) => (
-              <div key={index} className="grid grid-cols-2 gap-3">
+              <div key={index} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <label className="text-sm font-medium">Nom de l'action *</label>
                   <Input
@@ -397,11 +397,11 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
         <p className="text-muted-foreground">Date: ___________________</p>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Annuler
         </Button>
-        <Button type="submit">Créer le devis</Button>
+        <Button type="submit" className="w-full sm:w-auto">Créer le devis</Button>
       </div>
     </form>
   );

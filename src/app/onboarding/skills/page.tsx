@@ -292,11 +292,11 @@ export default function SkillsOnboardingPage() {
         })}
       </div>
 
-      <div className="fixed bottom-[45px] left-6 right-6 z-50 flex justify-between">
-        <Button variant="outline" onClick={onBack}>
+      <div className="fixed bottom-[45px] left-6 right-6 z-50 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto">
           Retour
         </Button>
-        <Button onClick={onSubmit} disabled={isSaving || !selected.length}>
+        <Button onClick={onSubmit} disabled={isSaving || !selected.length} className="w-full sm:w-auto">
           {isSaving ? "Enregistrement..." : "Suivant"}
         </Button>
       </div>

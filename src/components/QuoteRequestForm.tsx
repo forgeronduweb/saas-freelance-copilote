@@ -437,12 +437,12 @@ function QuoteRequestForm() {
               )}
 
               {/* Boutons de navigation */}
-              <div className="flex justify-between items-center pt-8 border-t border-gray-200">
+              <div className="flex flex-col-reverse gap-3 pt-8 border-t border-gray-200 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={handlePrevious}
                   disabled={currentStep === 0}
-                  className="px-8 py-4 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                  className="w-full px-8 py-4 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base sm:w-auto"
                 >
                   Précédent
                 </button>
@@ -452,7 +452,7 @@ function QuoteRequestForm() {
                     type="button"
                     onClick={handleNext}
                     disabled={!isCurrentFieldValid()}
-                    className="px-8 py-4 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-600 text-base"
+                    className="w-full px-8 py-4 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-600 text-base sm:w-auto"
                   >
                     Suivant
                   </button>
@@ -461,7 +461,7 @@ function QuoteRequestForm() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={isLoading || !isCurrentFieldValid()}
-                    className="px-8 py-4 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                    className="w-full px-8 py-4 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-base sm:w-auto"
                   >
                     <span className="hidden sm:inline">{isLoading ? "Envoi en cours..." : "Envoyer ma demande de devis"}</span>
                     <span className="sm:hidden">{isLoading ? "Envoi..." : "Envoyer"}</span>

@@ -10,6 +10,10 @@ const requiredEnvVars = [
   'NEXTAUTH_SECRET'
 ];
 
+const isServer = typeof window === 'undefined';
+const isProduction = process.env.NODE_ENV === 'production';
+const isProductionBuild = process.env.NEXT_PHASE === 'phase-production-build';
+
 // Valeur par défaut pour le build time et le développement
 // En production runtime, les vraies variables seront utilisées
 const DEFAULT_SECRET = process.env.NODE_ENV === 'production'
@@ -19,11 +23,11 @@ const DEFAULT_SECRET = process.env.NODE_ENV === 'production'
 // Vérifier que les variables requises sont définies (avertissement uniquement, pas d'erreur au build)
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
-    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    if (isServer && isProduction && !isProductionBuild) {
       throw new Error(`❌ Variable d'environnement manquante en production: ${envVar}`);
     }
     // Ne pas lancer d'erreur au build time - les variables seront injectées au runtime
-    if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+    if (isServer && !isProduction) {
       console.warn(`⚠️  Variable d'environnement manquante: ${envVar}. Utilisation d'une valeur par défaut.`);
     }
   }
@@ -186,6 +190,6 @@ export function validateConfig(): boolean {
 }
 
 // Valider la configuration au démarrage
-if (typeof window === 'undefined') { // Côté serveur seulement
+if (typeof window === 'undefined' && process.env.NEXT_PHASE !== 'phase-production-build') { // Côté serveur seulement
   validateConfig();
 }

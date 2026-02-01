@@ -43,15 +43,15 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/dashboard/finance/factures">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg">{invoice.id}</h1>
               <span className="text-muted-foreground">•</span>
               <span className="text-sm">{invoice.client}</span>
@@ -60,7 +60,7 @@ export default function InvoiceDetailPage() {
             <p className="text-muted-foreground text-sm">{new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(invoice.amount)} • Échéance: {new Date(invoice.dueDate).toLocaleDateString("fr-FR")}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 sm:justify-end">
           <Button variant="outline" size="icon">
             <Download className="h-4 w-4" />
           </Button>
@@ -79,7 +79,7 @@ export default function InvoiceDetailPage() {
           <CardDescription>{invoice.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
@@ -122,17 +122,17 @@ export default function InvoiceDetailPage() {
         <CardHeader>
           <CardTitle>Actions</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-3">
-          <Button>
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Button className="w-full sm:w-auto">
             <Send className="mr-2 h-4 w-4" />
             Envoyer au client
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Télécharger PDF
           </Button>
           {invoice.status !== "Payée" && (
-            <Button variant="outline" className="text-emerald-600">
+            <Button variant="outline" className="text-emerald-600 w-full sm:w-auto">
               Marquer comme payée
             </Button>
           )}

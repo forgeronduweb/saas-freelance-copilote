@@ -596,14 +596,14 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="factures" className="mt-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Factures</CardTitle>
                 <CardDescription>Liste de toutes vos factures</CardDescription>
               </div>
               <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Nouvelle facture
                   </Button>
@@ -631,14 +631,14 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
 
         <TabsContent value="devis" className="mt-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Devis</CardTitle>
                 <CardDescription>Gérez vos devis et convertissez-les en factures</CardDescription>
               </div>
               <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Nouveau devis
                   </Button>
@@ -667,26 +667,26 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
         <TabsContent value="depenses" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle>Dépenses & frais</CardTitle>
                   <CardDescription>Suivi des dépenses professionnelles</CardDescription>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <Upload className="mr-2 h-4 w-4" />
                   Ajouter un reçu
                 </Button>
               </CardHeader>
               <CardContent className="space-y-3">
                 {expenses.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div key={e.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border">
                     <div>
                       <p className="font-medium text-sm">{e.label}</p>
                       <p className="text-xs text-muted-foreground">
                         {e.category} • {new Date(e.date).toLocaleDateString("fr-FR")}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       <Badge variant={e.receipt ? "default" : "outline"}>{e.receipt ? "Reçu" : "Sans reçu"}</Badge>
                       <span className="font-medium">{formatCurrency(e.amount)}</span>
                     </div>
@@ -736,7 +736,7 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
                   <p className="text-sm text-muted-foreground">Base (revenus encaissés)</p>
                   <p className="text-2xl font-semibold">{formatCurrency(stats.totalRevenue)}</p>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <Calculator className="mr-2 h-4 w-4" />
                   Calculer (bientôt)
                 </Button>
@@ -763,19 +763,19 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
         <TabsContent value="documents" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle>Documents légaux</CardTitle>
                   <CardDescription>Coffre-fort (Kbis, RC Pro, attestations)</CardDescription>
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <Upload className="mr-2 h-4 w-4" />
                   Importer
                 </Button>
               </CardHeader>
               <CardContent className="space-y-3">
                 {legalDocs.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div key={d.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 rounded-lg border">
                     <div className="flex items-start gap-3">
                       <Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div>
@@ -785,7 +785,9 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline">{d.type}</Badge>
+                    <div className="flex items-center justify-between sm:justify-end">
+                      <Badge variant="outline">{d.type}</Badge>
+                    </div>
                   </div>
                 ))}
               </CardContent>

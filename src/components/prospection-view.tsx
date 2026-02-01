@@ -13,6 +13,7 @@ import {
   Phone,
   MoreHorizontal,
   Pencil,
+  Sparkles,
   Trash2,
   Plus,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
@@ -78,6 +80,12 @@ type Opportunity = {
   status?: string;
 };
 
+type ScriptTemplate = {
+  id: string;
+  title: string;
+  content: string;
+};
+
 export type ProspectionTab = "pipeline" | "contacts" | "opportunites" | "scripts";
 
 function formatCurrency(amount: number) {
@@ -91,6 +99,16 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [scriptTemplates, setScriptTemplates] = useState<ScriptTemplate[]>([]);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<ScriptTemplate | null>(null);
+  const [templateTitle, setTemplateTitle] = useState("");
+  const [templateContent, setTemplateContent] = useState("");
+  const [aiObjective, setAiObjective] = useState("Mail de prise de contact");
+  const [aiContext, setAiContext] = useState("");
+  const [aiTone, setAiTone] = useState("Professionnel");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState<string>("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -208,6 +226,66 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
     ];
   }, []);
 
+  const defaultTemplates = useMemo<ScriptTemplate[]>(() => {
+    return [
+      {
+        id: "TPL-001",
+        title: "Mail de prise de contact",
+        content:
+          "Bonjour,\n\nJe me permets de vous contacter car j'accompagne des entreprises sur [type de besoin].\n\nSeriez-vous disponible pour un échange de 15 minutes cette semaine ?\n\nCordialement",
+      },
+      {
+        id: "TPL-002",
+        title: "Relance après devis",
+        content:
+          "Bonjour,\n\nJe reviens vers vous suite au devis envoyé le [date].\n\nSouhaitez-vous que l'on en discute ou avez-vous des ajustements à prévoir ?\n\nBien à vous",
+      },
+      {
+        id: "TPL-003",
+        title: "Relance finale",
+        content:
+          "Bonjour,\n\nJe me permets une dernière relance concernant notre proposition.\n\nSans retour de votre part d'ici [date], je considérerai le dossier en pause.\n\nMerci",
+      },
+    ];
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("tuma:scripts:templates");
+      if (!raw) {
+        setScriptTemplates(defaultTemplates);
+        return;
+      }
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        const safe = parsed
+          .filter((t): t is ScriptTemplate => {
+            const tpl = t as ScriptTemplate;
+            return (
+              typeof tpl?.id === "string" &&
+              typeof tpl?.title === "string" &&
+              typeof tpl?.content === "string"
+            );
+          })
+          .slice(0, 200);
+
+        setScriptTemplates(safe.length > 0 ? safe : defaultTemplates);
+      } else {
+        setScriptTemplates(defaultTemplates);
+      }
+    } catch {
+      setScriptTemplates(defaultTemplates);
+    }
+  }, [defaultTemplates]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("tuma:scripts:templates", JSON.stringify(scriptTemplates));
+    } catch {
+      // noop
+    }
+  }, [scriptTemplates]);
+
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -321,29 +399,6 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
     };
   }, [clients, quotes]);
 
-  const templates = useMemo(() => {
-    return [
-      {
-        id: "TPL-001",
-        title: "Mail de prise de contact",
-        content:
-          "Bonjour,\n\nJe me permets de vous contacter car j'accompagne des entreprises sur [type de besoin].\n\nSeriez-vous disponible pour un échange de 15 minutes cette semaine ?\n\nCordialement",
-      },
-      {
-        id: "TPL-002",
-        title: "Relance après devis",
-        content:
-          "Bonjour,\n\nJe reviens vers vous suite au devis envoyé le [date].\n\nSouhaitez-vous que l'on en discute ou avez-vous des ajustements à prévoir ?\n\nBien à vous",
-      },
-      {
-        id: "TPL-003",
-        title: "Relance finale",
-        content:
-          "Bonjour,\n\nJe me permets une dernière relance concernant notre proposition.\n\nSans retour de votre part d'ici [date], je considérerai le dossier en pause.\n\nMerci",
-      },
-    ];
-  }, []);
-
   const handleCopy = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -351,6 +406,73 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
       window.setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1200);
     } catch (error) {
       console.error("Erreur copie:", error);
+    }
+  };
+
+  const openCreateTemplate = (preset?: { title?: string; content?: string }) => {
+    setEditingTemplate(null);
+    setTemplateTitle(preset?.title ?? "");
+    setTemplateContent(preset?.content ?? "");
+    setTemplateDialogOpen(true);
+  };
+
+  const openEditTemplate = (tpl: ScriptTemplate) => {
+    setEditingTemplate(tpl);
+    setTemplateTitle(tpl.title);
+    setTemplateContent(tpl.content);
+    setTemplateDialogOpen(true);
+  };
+
+  const handleSaveTemplate = () => {
+    const title = templateTitle.trim();
+    const content = templateContent.trim();
+    if (!title || !content) return;
+
+    if (editingTemplate) {
+      setScriptTemplates((prev) =>
+        prev.map((t) => (t.id === editingTemplate.id ? { ...t, title, content } : t))
+      );
+    } else {
+      const id = `TPL-${Date.now().toString(36).toUpperCase()}`;
+      setScriptTemplates((prev) => [{ id, title, content }, ...prev]);
+    }
+
+    setTemplateDialogOpen(false);
+    setEditingTemplate(null);
+    setTemplateTitle("");
+    setTemplateContent("");
+  };
+
+  const handleDeleteTemplate = (tpl: ScriptTemplate) => {
+    const ok = window.confirm(`Supprimer "${tpl.title}" ?`);
+    if (!ok) return;
+    setScriptTemplates((prev) => prev.filter((t) => t.id !== tpl.id));
+  };
+
+  const handleGenerateScript = async () => {
+    setAiGenerating(true);
+    setAiResult("");
+    try {
+      const res = await fetch("/api/ai/prospection-script", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          objective: aiObjective,
+          context: aiContext,
+          tone: aiTone,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((json as any)?.error || "Erreur génération IA");
+      }
+
+      setAiResult((json as any)?.text || "");
+    } catch (error) {
+      console.error("Erreur génération IA:", error);
+    } finally {
+      setAiGenerating(false);
     }
   };
 
@@ -364,6 +486,58 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
 
   return (
     <div className="space-y-6">
+      <Dialog
+        open={templateDialogOpen}
+        onOpenChange={(open) => {
+          setTemplateDialogOpen(open);
+          if (!open) {
+            setEditingTemplate(null);
+            setTemplateTitle("");
+            setTemplateContent("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Nouveau modèle"}</DialogTitle>
+            <DialogDescription>Créez un script réutilisable pour vos emails et relances.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <label htmlFor="tpl-title" className="text-sm">
+                Titre
+              </label>
+              <Input
+                id="tpl-title"
+                value={templateTitle}
+                onChange={(e) => setTemplateTitle(e.target.value)}
+                placeholder="Ex: Relance après devis"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="tpl-content" className="text-sm">
+                Contenu
+              </label>
+              <Textarea
+                id="tpl-content"
+                value={templateContent}
+                onChange={(e) => setTemplateContent(e.target.value)}
+                placeholder="Écrivez votre script..."
+                className="min-h-[180px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={() => setTemplateDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button type="button" onClick={handleSaveTemplate}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog
         open={deleteConfirmOpen}
         onOpenChange={(open) => {
@@ -616,39 +790,145 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
         </TabsContent>
 
         <TabsContent value="scripts" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Modèles & scripts</CardTitle>
-              <CardDescription>Mails et scripts de vente réutilisables</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {templates.map((tpl) => (
-                <div key={tpl.id} className="p-3 rounded-lg border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-sm">{tpl.title}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Générer avec l&apos;IA</CardTitle>
+                <CardDescription>Créez un script adapté à votre contexte</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <label htmlFor="ai-objective" className="text-sm">
+                    Objectif
+                  </label>
+                  <Input
+                    id="ai-objective"
+                    value={aiObjective}
+                    onChange={(e) => setAiObjective(e.target.value)}
+                    placeholder="Ex: Relance après devis"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="ai-tone" className="text-sm">
+                    Ton
+                  </label>
+                  <Input
+                    id="ai-tone"
+                    value={aiTone}
+                    onChange={(e) => setAiTone(e.target.value)}
+                    placeholder="Ex: Professionnel, direct, chaleureux"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="ai-context" className="text-sm">
+                    Contexte
+                  </label>
+                  <Textarea
+                    id="ai-context"
+                    value={aiContext}
+                    onChange={(e) => setAiContext(e.target.value)}
+                    placeholder="Ex: Client: PME e-commerce. Besoin: refonte landing. Devis envoyé le 12/01. Pas de réponse depuis 7 jours..."
+                    className="min-h-[120px]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="button" onClick={handleGenerateScript} disabled={aiGenerating}>
+                    {aiGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    Générer
+                  </Button>
+                  {aiResult ? (
                     <Button
                       type="button"
-                      size="sm"
                       variant="outline"
-                      onClick={() => handleCopy(tpl.id, tpl.content)}
+                      onClick={() => handleCopy("AI", aiResult)}
                     >
                       <Copy className="mr-2 h-4 w-4" />
-                      {copiedId === tpl.id ? "Copié" : "Copier"}
+                      {copiedId === "AI" ? "Copié" : "Copier"}
+                    </Button>
+                  ) : null}
+                </div>
+                {aiResult ? (
+                  <div className="space-y-2">
+                    <pre className="text-xs whitespace-pre-wrap text-muted-foreground border rounded-lg p-3">
+                      {aiResult}
+                    </pre>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => openCreateTemplate({ title: aiObjective, content: aiResult })}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter à la bibliothèque
                     </Button>
                   </div>
-                  <pre className="text-xs whitespace-pre-wrap text-muted-foreground">{tpl.content}</pre>
-                  <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
-                    <Link
-                      href={`mailto:?subject=${encodeURIComponent(tpl.title)}&body=${encodeURIComponent(tpl.content)}`}
-                    >
-                      <Mail className="mr-2 h-4 w-4" />
-                      Ouvrir email
-                    </Link>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle>Modèles & scripts</CardTitle>
+                    <CardDescription>Mails et scripts de vente réutilisables</CardDescription>
+                  </div>
+                  <Button type="button" onClick={() => openCreateTemplate()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nouveau
                   </Button>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {scriptTemplates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucun modèle pour le moment.</p>
+                ) : (
+                  scriptTemplates.map((tpl) => (
+                    <div key={tpl.id} className="p-3 rounded-lg border space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium text-sm">{tpl.title}</p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCopy(tpl.id, tpl.content)}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            {copiedId === tpl.id ? "Copié" : "Copier"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditTemplate(tpl)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteTemplate(tpl)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <pre className="text-xs whitespace-pre-wrap text-muted-foreground">{tpl.content}</pre>
+                      <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+                        <Link
+                          href={`mailto:?subject=${encodeURIComponent(tpl.title)}&body=${encodeURIComponent(tpl.content)}`}
+                        >
+                          <Mail className="mr-2 h-4 w-4" />
+                          Ouvrir email
+                        </Link>
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

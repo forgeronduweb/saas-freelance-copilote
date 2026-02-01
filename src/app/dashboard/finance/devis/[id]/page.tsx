@@ -183,15 +183,15 @@ export default function QuoteDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/dashboard/finance/devis">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg">{quote.id}</h1>
               <span className="text-muted-foreground">•</span>
               <span className="text-sm">{quote.clientName}</span>
@@ -202,8 +202,8 @@ export default function QuoteDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCopyClientLink} disabled={copyingLink}>
+        <div className="flex flex-wrap gap-2 sm:justify-end">
+          <Button variant="outline" onClick={handleCopyClientLink} disabled={copyingLink} className="w-full sm:w-auto">
             <Copy className="mr-2 h-4 w-4" />
             {copyingLink ? "Copie..." : "Copier le lien client"}
           </Button>
@@ -227,7 +227,7 @@ export default function QuoteDetailPage() {
           <CardDescription>{quote.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>

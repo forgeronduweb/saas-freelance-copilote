@@ -12,11 +12,16 @@ const requiredEnvVars = [
 
 // Valeur par défaut pour le build time et le développement
 // En production runtime, les vraies variables seront utilisées
-const DEFAULT_SECRET = 'build-time-placeholder-secret-minimum-32-characters-long';
+const DEFAULT_SECRET = process.env.NODE_ENV === 'production'
+  ? ''
+  : 'dev-placeholder-jwt-nextauth-secret';
 
 // Vérifier que les variables requises sont définies (avertissement uniquement, pas d'erreur au build)
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      throw new Error(`❌ Variable d'environnement manquante en production: ${envVar}`);
+    }
     // Ne pas lancer d'erreur au build time - les variables seront injectées au runtime
     if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
       console.warn(`⚠️  Variable d'environnement manquante: ${envVar}. Utilisation d'une valeur par défaut.`);

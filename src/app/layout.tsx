@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
@@ -31,11 +32,37 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeCookie = cookies().get("tuma-theme")?.value;
+  const htmlClassName = themeCookie === "dark" ? "dark" : undefined;
+
   return (
-    <html lang="fr">
+    <html lang="fr" className={htmlClassName} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  try {
+    var raw = localStorage.getItem("appSettings");
+    var settings = raw ? JSON.parse(raw) : null;
+    var theme = settings && (settings.theme === "dark" || settings.theme === "light") ? settings.theme : null;
+
+    if (!theme) {
+      var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      theme = prefersDark ? "dark" : "light";
+      var next = settings && typeof settings === "object" && settings !== null ? settings : {};
+      next.theme = theme;
+      if (!next.language) next.language = "fr";
+      localStorage.setItem("appSettings", JSON.stringify(next));
+    }
+
+    document.cookie = "tuma-theme=" + theme + "; path=/; max-age=31536000; samesite=lax";
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  } catch (e) {}
+})();`,
+          }}
+        />
         <NextAuthProvider>
           <AuthProvider>{children}</AuthProvider>
         </NextAuthProvider>

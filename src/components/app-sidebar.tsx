@@ -11,6 +11,7 @@ import {
   CreditCard,
   BarChart3,
   Home,
+  Settings,
   MessageSquare,
   HelpCircle,
   ChevronDown,
@@ -65,6 +66,7 @@ export const menuSections = [
       { title: "Finance & Admin", url: "/dashboard/finance", icon: CreditCard },
       { title: "Entreprise", url: "/dashboard/entreprise", icon: Building2 },
       { title: "Intégrations", url: "/dashboard/integrations", icon: Link2 },
+      { title: "Paramètres de l’application", url: "/dashboard/settings/app", icon: Settings },
     ],
   },
 ] as const

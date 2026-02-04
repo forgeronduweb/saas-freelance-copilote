@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, Mail, Phone, Building, Bell, Shield, CreditCard, Palette, Loader2, Check } from "lucide-react";
+import { User, Mail, Phone, Building, Bell, Shield, CreditCard, Loader2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const profileSchema = z.object({
@@ -411,33 +411,8 @@ export default function SettingsPage() {
                   </p>
                 )}
               </div>
-              <Button variant="outline" className="w-full">Gérer l'abonnement</Button>
+              <Button variant="outline" className="w-full">Gérer l’abonnement</Button>
               <Button variant="ghost" className="w-full text-muted-foreground">Voir les factures</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" /> Apparence
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Thème</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" className="border-primary">Clair</Button>
-                  <Button variant="outline" size="sm">Sombre</Button>
-                  <Button variant="outline" size="sm">Auto</Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Langue</label>
-                <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm">
-                  <option>Français</option>
-                  <option>English</option>
-                </select>
-              </div>
             </CardContent>
           </Card>
 

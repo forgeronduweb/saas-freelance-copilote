@@ -1,12 +1,11 @@
 "use client";
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, ResponsiveContainer, XAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { TrendingUp, TrendingDown, Clock, Target, DollarSign, FileText, Calendar, AlertTriangle, Briefcase } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 interface DashboardStats {
@@ -140,52 +139,73 @@ export default function Dashboard() {
     return new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(amount);
   };
 
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const [statsRes, planningRes, quotesRes, financeRes, missionsRes] = await Promise.all([
+        fetch("/api/dashboard/stats", { credentials: "include", cache: "no-store" }),
+        fetch("/api/dashboard/planning", { credentials: "include", cache: "no-store" }),
+        fetch("/api/dashboard/quotes", { credentials: "include", cache: "no-store" }),
+        fetch("/api/dashboard/finance", { credentials: "include", cache: "no-store" }),
+        fetch("/api/dashboard/missions", { credentials: "include", cache: "no-store" }),
+      ]);
+
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setStats(data.stats);
+        setChartData(data.chartData || []);
+        setUser(data.user || null);
+      }
+
+      if (planningRes.ok) {
+        const data = await planningRes.json();
+        const nextEvents = Array.isArray(data?.events) ? (data.events as PlanningEvent[]) : [];
+        setEvents(nextEvents);
+      }
+
+      if (quotesRes.ok) {
+        const data = await quotesRes.json();
+        setQuotes(Array.isArray(data?.quotes) ? data.quotes : []);
+      }
+
+      if (financeRes.ok) {
+        const data = await financeRes.json();
+        setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
+      }
+
+      if (missionsRes.ok) {
+        const data = await missionsRes.json();
+        setMissions(Array.isArray(data?.missions) ? (data.missions as Mission[]) : []);
+      }
+    } catch (error) {
+      console.error("Erreur fetch stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [statsRes, planningRes, quotesRes, financeRes, missionsRes] = await Promise.all([
-          fetch("/api/dashboard/stats", { credentials: "include" }),
-          fetch("/api/dashboard/planning", { credentials: "include" }),
-          fetch("/api/dashboard/quotes", { credentials: "include" }),
-          fetch("/api/dashboard/finance", { credentials: "include" }),
-          fetch("/api/dashboard/missions", { credentials: "include" }),
-        ]);
+    void fetchDashboardData();
 
-        if (statsRes.ok) {
-          const data = await statsRes.json();
-          setStats(data.stats);
-          setChartData(data.chartData || []);
-          setUser(data.user || null);
-        }
+    const onFocus = () => {
+      void fetchDashboardData();
+    };
 
-        if (planningRes.ok) {
-          const data = await planningRes.json();
-          const nextEvents = Array.isArray(data?.events) ? (data.events as PlanningEvent[]) : [];
-          setEvents(nextEvents);
-        }
-
-        if (quotesRes.ok) {
-          const data = await quotesRes.json();
-          setQuotes(Array.isArray(data?.quotes) ? data.quotes : []);
-        }
-
-        if (financeRes.ok) {
-          const data = await financeRes.json();
-          setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
-        }
-
-        if (missionsRes.ok) {
-          const data = await missionsRes.json();
-          setMissions(Array.isArray(data?.missions) ? (data.missions as Mission[]) : []);
-        }
-      } catch (error) {
-        console.error("Erreur fetch stats:", error);
-      } finally {
-        setIsLoading(false);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void fetchDashboardData();
       }
     };
-    fetchStats();
-  }, []);
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [fetchDashboardData]);
 
   const quotesToFollowUp = quotes.filter((q) => q.status === "Envoyé");
   const nextEvents = [...events]
@@ -640,7 +660,7 @@ export default function Dashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Flux d'activité</CardTitle>
+            <CardTitle>Flux d’activité</CardTitle>
             <CardDescription>Rappels urgents de la semaine.</CardDescription>
           </div>
         </CardHeader>

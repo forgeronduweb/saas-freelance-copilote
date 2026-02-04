@@ -358,10 +358,10 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
         cell: ({ row }) => {
           const status = row.getValue("status") as string;
           const colors: Record<string, string> = {
-            Payée: "bg-emerald-50 text-emerald-700 border-emerald-200",
-            "En attente": "bg-orange-50 text-orange-700 border-orange-200",
-            "En retard": "bg-red-50 text-red-700 border-red-200",
-            Brouillon: "bg-gray-50 text-gray-700 border-gray-200",
+            Payée: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800",
+            "En attente": "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-800",
+            "En retard": "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800",
+            Brouillon: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/40 dark:text-gray-200 dark:border-gray-700",
           };
           return (
             <Badge variant="secondary" className={colors[status]}>

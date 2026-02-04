@@ -5,7 +5,6 @@ import User from '@/lib/models/User';
 import Invoice from '@/lib/models/Invoice';
 import Client from '@/lib/models/Client';
 import Task from '@/lib/models/Task';
-import Quote from '@/lib/models/Quote';
 import TimeEntry from '@/lib/models/TimeEntry';
 import { config } from '@/lib/config';
 
@@ -17,29 +16,57 @@ export async function GET(request: NextRequest) {
     if (!token) {
       return NextResponse.json(
         { error: 'Non authentifié' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
       );
     }
 
     // Vérifier et décoder le token
-    let decoded;
+    let userIdFromToken: string;
     try {
-      decoded = jwt.verify(token, config.auth.jwtSecret) as any;
-    } catch (error) {
+      const decoded = jwt.verify(token, config.auth.jwtSecret);
+      if (typeof decoded !== 'object' || decoded === null || !("userId" in decoded)) {
+        return NextResponse.json(
+          { error: 'Token invalide' },
+          {
+            status: 401,
+            headers: {
+              'Cache-Control': 'no-store, max-age=0',
+            },
+          }
+        );
+      }
+
+      userIdFromToken = (decoded as jwt.JwtPayload & { userId: string }).userId;
+    } catch {
       return NextResponse.json(
         { error: 'Token invalide' },
-        { status: 401 }
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
       );
     }
 
     await connectDB();
 
     // Récupérer l'utilisateur
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(userIdFromToken);
     if (!user) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
-        { status: 404 }
+        {
+          status: 404,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
       );
     }
 
@@ -179,27 +206,39 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    return NextResponse.json({
-      stats,
-      chartData,
-      tasks,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        userType: user.userType,
-        planType: user.planType || 'gratuit',
-        avatar: user.avatar,
-        professions: user.professions || [],
+    return NextResponse.json(
+      {
+        stats,
+        chartData,
+        tasks,
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          userType: user.userType,
+          planType: user.planType || 'gratuit',
+          avatar: user.avatar,
+          professions: user.professions || [],
+        },
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
       }
-    });
+    );
 
   } catch (error) {
     console.error('Erreur stats dashboard:', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
     );
   }
 }

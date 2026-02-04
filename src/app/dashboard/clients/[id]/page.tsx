@@ -96,9 +96,9 @@ export default function ClientDetailPage() {
   }
 
   const statusColors: Record<string, string> = {
-    "Actif": "bg-emerald-50 text-emerald-700 border-emerald-200",
-    "Inactif": "bg-gray-50 text-gray-700 border-gray-200",
-    "Prospect": "bg-blue-50 text-blue-700 border-blue-200",
+    "Actif": "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800",
+    "Inactif": "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/40 dark:text-gray-200 dark:border-gray-700",
+    "Prospect": "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800",
   };
 
   const handleCreateInvoice = async (data: {

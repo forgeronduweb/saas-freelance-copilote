@@ -173,10 +173,10 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
         cell: ({ row }) => {
           const status = row.getValue("status") as string;
           const colors: Record<string, string> = {
-            Actif: "bg-emerald-50 text-emerald-700 border-emerald-200",
-            Inactif: "bg-gray-50 text-gray-700 border-gray-200",
-            Prospect: "bg-blue-50 text-blue-700 border-blue-200",
-            Perdu: "bg-red-50 text-red-700 border-red-200",
+            Actif: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800",
+            Inactif: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/40 dark:text-gray-200 dark:border-gray-700",
+            Prospect: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800",
+            Perdu: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800",
           };
           return (
             <Badge variant="secondary" className={colors[status]}>
@@ -463,12 +463,28 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
         }),
       });
 
-      const json = await res.json().catch(() => ({}));
+      const json: unknown = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error((json as any)?.error || "Erreur génération IA");
+        const errorMessage =
+          typeof json === "object" &&
+          json !== null &&
+          "error" in json &&
+          typeof (json as { error?: unknown }).error === "string"
+            ? (json as { error: string }).error
+            : "Erreur génération IA";
+
+        throw new Error(errorMessage);
       }
 
-      setAiResult((json as any)?.text || "");
+      const nextText =
+        typeof json === "object" &&
+        json !== null &&
+        "text" in json &&
+        typeof (json as { text?: unknown }).text === "string"
+          ? (json as { text: string }).text
+          : "";
+
+      setAiResult(nextText);
     } catch (error) {
       console.error("Erreur génération IA:", error);
     } finally {

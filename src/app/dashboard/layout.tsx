@@ -58,7 +58,8 @@ const pageTitles: Record<string, string> = {
   "/dashboard/site-web": "Mon site",
   "/dashboard/entreprise": "Entreprise",
   "/dashboard/integrations": "Intégrations",
-  "/dashboard/settings": "Paramètres",
+  "/dashboard/settings": "Paramètres du compte",
+  "/dashboard/settings/app": "Paramètres de l’application",
 };
 
 const timeTrackerLocalStorageKey = "timeTrackerState";
@@ -298,7 +299,7 @@ export default function DashboardLayout({
                   <DropdownMenuGroup>
                     <DropdownMenuItem onSelect={() => router.push("/dashboard/settings") }>
                       <Settings className="h-4 w-4" />
-                      <span>Paramètres</span>
+                      <span className="whitespace-nowrap">Paramètres du compte</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
 
@@ -347,7 +348,15 @@ export default function DashboardLayout({
                 router.push("/dashboard/settings");
               }}
             >
-              <span>Paramètres</span>
+              <span>Paramètres du compte</span>
+            </CommandItem>
+            <CommandItem
+              onSelect={() => {
+                setCommandOpen(false);
+                router.push("/dashboard/settings/app");
+              }}
+            >
+              <span>Paramètres de l’application</span>
             </CommandItem>
             <CommandItem
               onSelect={() => {

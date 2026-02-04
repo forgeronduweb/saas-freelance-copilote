@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, FileText, Download, Send, Printer } from "lucide-react";
+import { ArrowLeft, Download, Send } from "lucide-react";
 
 const invoices = [
   { id: "FAC-2024-001", client: "Tech Solutions CI", amount: 1500000, date: "2024-01-15", dueDate: "2024-02-15", status: "Payée", description: "Développement site e-commerce", items: [{ name: "Développement frontend", qty: 1, price: 900000 }, { name: "Intégration API", qty: 1, price: 600000 }] },
@@ -60,17 +60,6 @@ export default function InvoiceDetailPage() {
             <p className="text-muted-foreground text-sm">{new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(invoice.amount)} • Échéance: {new Date(invoice.dueDate).toLocaleDateString("fr-FR")}</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 sm:justify-end">
-          <Button variant="outline" size="icon">
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <Printer className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       <Card>
@@ -79,7 +68,52 @@ export default function InvoiceDetailPage() {
           <CardDescription>{invoice.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-x-auto">
+          <div className="space-y-3 sm:hidden">
+            {invoice.items.map((item, index) => (
+              <div key={index} className="rounded-lg border p-3 space-y-2">
+                <p className="font-medium">{item.name}</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Quantité</p>
+                    <p>{item.qty}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Prix unitaire</p>
+                    <p>{new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(item.price)}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-medium">
+                      {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(item.qty * item.price)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+              <div className="flex items-center justify-between text-sm">
+                <span>Total HT</span>
+                <span className="font-medium">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(invoice.amount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>TVA (18%)</span>
+                <span className="font-medium">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(invoice.amount * 0.18)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-base pt-2 border-t">
+                <span>Total TTC</span>
+                <span className="font-semibold">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(invoice.amount * 1.18)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block border rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>

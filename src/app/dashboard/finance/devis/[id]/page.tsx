@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Send, Printer, CheckCircle, XCircle, FileCheck, Copy } from "lucide-react";
+import { ArrowLeft, Download, Send, CheckCircle, XCircle, FileCheck, Copy } from "lucide-react";
 
 type QuoteStatus = "Brouillon" | "Envoyé" | "Accepté" | "Refusé" | "Expiré";
 
@@ -198,26 +198,9 @@ export default function QuoteDetailPage() {
               <Badge variant="secondary" className={statusColors[quote.status]}>{quote.status}</Badge>
             </div>
             <p className="text-muted-foreground text-sm">
-              {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(quote.total)} • Valide jusqu'au: {new Date(quote.validUntil).toLocaleDateString("fr-FR")}
+              {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(quote.total)} • Valide jusqu’au: {new Date(quote.validUntil).toLocaleDateString("fr-FR")}
             </p>
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2 sm:justify-end">
-          <Button variant="outline" onClick={handleCopyClientLink} disabled={copyingLink} className="w-full sm:w-auto">
-            <Copy className="mr-2 h-4 w-4" />
-            {copyingLink ? "Copie..." : "Copier le lien client"}
-          </Button>
-          <Button variant="outline" size="icon">
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <Printer className="h-4 w-4" />
-          </Button>
-          {quote.status === "Brouillon" && (
-            <Button variant="outline" size="icon" onClick={() => handleStatusChange("Envoyé")}>
-              <Send className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -227,7 +210,56 @@ export default function QuoteDetailPage() {
           <CardDescription>{quote.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-x-auto">
+          <div className="space-y-3 sm:hidden">
+            {quote.items.map((item, index) => (
+              <div key={index} className="rounded-lg border p-3 space-y-2">
+                <p className="font-medium">{item.description}</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Quantité</p>
+                    <p>{item.quantity}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Prix unitaire</p>
+                    <p>
+                      {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(item.unitPrice)}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="font-medium">
+                      {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(
+                        item.quantity * item.unitPrice
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+              <div className="flex items-center justify-between text-sm">
+                <span>Total HT</span>
+                <span className="font-medium">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(totalHT)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>TVA (18%)</span>
+                <span className="font-medium">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(tva)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-base pt-2 border-t">
+                <span>Total TTC</span>
+                <span className="font-semibold">
+                  {new Intl.NumberFormat("fr-CI", { style: "currency", currency: "XOF" }).format(totalTTC)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden sm:block border rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
@@ -277,6 +309,10 @@ export default function QuoteDetailPage() {
           <CardTitle>Actions</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-3 flex-wrap">
+          <Button variant="outline" onClick={handleCopyClientLink} disabled={copyingLink}>
+            <Copy className="mr-2 h-4 w-4" />
+            {copyingLink ? "Copie..." : "Copier le lien client"}
+          </Button>
           {quote.status === "Brouillon" && (
             <Button onClick={() => handleStatusChange("Envoyé")}>
               <Send className="mr-2 h-4 w-4" />

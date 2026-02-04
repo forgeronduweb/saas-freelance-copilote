@@ -791,7 +791,7 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
 
         <TabsContent value="scripts" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-1">
+            <Card className="lg:col-span-1 lg:sticky lg:top-6 self-start">
               <CardHeader>
                 <CardTitle>Générer avec l&apos;IA</CardTitle>
                 <CardDescription>Créez un script adapté à votre contexte</CardDescription>

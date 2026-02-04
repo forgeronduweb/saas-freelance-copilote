@@ -9,36 +9,44 @@ import {
 
 const faqItems = [
   {
-    question: "Comment fonctionne la plateforme ?",
-    answer: "Notre plateforme met en relation les freelances avec des clients. Vous pouvez créer un profil, proposer vos services, et recevoir des missions directement via notre interface. Les paiements sont sécurisés et le suivi des projets est simplifié."
+    question: "À quoi sert Le Copilote du Freelance ?",
+    answer:
+      "Le Copilote du Freelance centralise la prospection, l'organisation et l'administratif au même endroit : CRM + opportunités, suivi de projets/temps, devis/factures et pilotage des charges. L'objectif : réduire la charge mentale et te faire gagner du temps chaque semaine.",
   },
   {
-    question: "Quels sont les frais de service ?",
-    answer: "Nous appliquons une commission de 10% sur chaque transaction réussie. Il n'y a aucun frais d'inscription ni d'abonnement mensuel. Vous ne payez que lorsque vous gagnez de l'argent."
+    question: "Y a-t-il une commission sur mon chiffre d'affaires ?",
+    answer:
+      "Non. Le Copilote du Freelance fonctionne sur un abonnement SaaS : tu gardes 100% de ton chiffre d'affaires. La plateforme ne s'interpose pas dans la relation avec tes clients.",
   },
   {
-    question: "Comment suis-je payé pour mes missions ?",
-    answer: "Les paiements sont traités via notre système sécurisé. Une fois la mission validée par le client, les fonds sont transférés sur votre compte dans un délai de 2-5 jours ouvrés. Vous pouvez choisir votre mode de paiement préférée dans vos paramètres."
+    question: "La plateforme gère-t-elle les paiements à ma place ?",
+    answer:
+      "Non. Tu restes propriétaire de la relation client et des encaissements. Le Copilote t'aide à créer des devis/factures, suivre les statuts (envoyé, payé, en retard) et rester à jour sur ton administratif.",
   },
   {
-    question: "Puis-je travailler avec des clients internationaux ?",
-    answer: "Oui, notre plateforme est ouverte aux clients du monde entier. Cependant, les paiements sont toujours traités en FCFA pour les freelances basés en Afrique de l'Ouest."
+    question: "Quels modules sont disponibles dans le dashboard ?",
+    answer:
+      "Tu peux naviguer entre : Prospection & CRM (pipeline, contacts, opportunités, scripts), Projets & Production (missions, documents, time tracker) et Finance & Admin (devis, factures, dépenses, charges, documents).",
   },
   {
-    question: "Comment puis-je améliorer mon profil ?",
-    answer: "Pour améliorer votre profil, assurez-vous de compléter toutes les sections : bio, compétences, portfolio, et certifications. Les profils complets reçoivent 3x plus de propositions de missions."
+    question: "Comment gagner du temps sur le suivi des projets ?",
+    answer:
+      "Utilise Projets & Production pour regrouper tes missions, documents et le suivi du temps. Le time tracker te permet de mesurer le temps passé, éviter les dérives et mieux piloter ta rentabilité.",
   },
   {
-    question: "Que faire en cas de litige avec un client ?",
-    answer: "En cas de litige, notre équipe de médiation intervient rapidement. Nous examinons les communications et les livrables pour trouver une solution équitable. Notre processus de résolution est transparent et impartial."
+    question: "Comment suivre mes charges et mon administratif ?",
+    answer:
+      "Dans Finance & Admin, tu peux centraliser factures, devis, dépenses et documents. L'idée est d'avoir une vue claire sur ce qui est encaissé, ce qui manque, et ce que tu dois provisionner.",
   },
   {
-    question: "Puis-je refuser une mission ?",
-    answer: "Oui, vous avez le droit de refuser toute mission qui ne correspond pas à vos compétences ou à votre disponibilité. Cependant, nous recommandons de communiquer poliment et rapidement avec le client."
+    question: "J'ai un bug ou une idée : comment vous le dire ?",
+    answer:
+      "Va dans la page Feedback depuis le dashboard (menu). Plus ton message est précis (où, quand, ce que tu attends), plus on peut corriger/améliorer vite.",
   },
   {
-    question: "Comment fonctionnent les évaluations ?",
-    answer: "Après chaque mission terminée, les deux parties peuvent laisser une évaluation. Les évaluations sont publiques et contribuent à votre réputation sur la plateforme. Une moyenne de 4 étoiles ou plus est requise pour accéder aux missions premium."
+    question: "Puis-je connecter des outils (agenda, etc.) ?",
+    answer:
+      "Oui, tu peux retrouver une page Intégrations dans le dashboard. Si tu ne vois pas l'intégration dont tu as besoin, envoie-nous une demande via Feedback.",
   }
 ];
 
@@ -48,9 +56,9 @@ export default function FAQPage() {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Questions Fréquemment Posées</h1>
+            <h1 className="text-4xl font-bold mb-4">Centre d’aide</h1>
             <p className="text-lg text-muted-foreground">
-              Trouvez des réponses aux questions les plus courantes sur notre plateforme
+              Réponses rapides aux questions les plus courantes sur le dashboard
             </p>
           </div>
 
@@ -73,13 +81,13 @@ export default function FAQPage() {
 
           <div className="mt-12 text-center">
             <p className="text-muted-foreground mb-4">
-              Vous ne trouvez pas réponse à votre question ?
+              Besoin d’aide sur un cas précis ?
             </p>
             <a 
-              href="/contact" 
+              href="/dashboard/feedback" 
               className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
             >
-              Contactez-nous
+              Envoyer un feedback
             </a>
           </div>
         </div>

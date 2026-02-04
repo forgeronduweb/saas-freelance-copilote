@@ -219,7 +219,6 @@ const UserSchema = new Schema<IUser>({
 });
 
 // Index pour optimiser les recherches
-UserSchema.index({ email: 1 });
 UserSchema.index({ userType: 1 });
 UserSchema.index({ skills: 1 });
 UserSchema.index({ location: 1 });

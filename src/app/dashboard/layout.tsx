@@ -55,7 +55,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/analyses/rapports": "Rapports",
   "/dashboard/analyses/tjm": "Calculateur TJM",
   "/dashboard/analyses/academy": "Academy",
-  "/dashboard/site-web": "Site web",
+  "/dashboard/site-web": "Mon site",
   "/dashboard/entreprise": "Entreprise",
   "/dashboard/integrations": "Intégrations",
   "/dashboard/settings": "Paramètres",

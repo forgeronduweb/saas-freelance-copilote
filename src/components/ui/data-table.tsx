@@ -26,6 +26,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
+function getMobileLabel(header: unknown, fallback: string) {
+  if (typeof header === "string") return header
+  if (typeof header === "number") return String(header)
+  return fallback
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -82,8 +88,71 @@ export function DataTable<TData, TValue>({
         ) : <div />}
         {actionButton}
       </div>
-      <div className="rounded-md border">
-        <Table>
+      <div className="space-y-3 sm:hidden">
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => {
+            const visibleCells = row.getVisibleCells()
+            const primaryCell =
+              visibleCells.find((cell) => cell.column.id !== "select" && cell.column.id !== "actions") ??
+              visibleCells[0]
+
+            const primaryLabel = primaryCell
+              ? getMobileLabel(primaryCell.column.columnDef.header, primaryCell.column.id)
+              : null
+
+            return (
+              <div
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                onClick={() => onRowClick?.(row.original)}
+                className={
+                  "rounded-lg border p-3 space-y-3 " +
+                  (onRowClick ? "cursor-pointer active:bg-muted/40" : "")
+                }
+              >
+                {primaryCell ? (
+                  <div className="space-y-1">
+                    {primaryLabel ? (
+                      <p className="text-xs text-muted-foreground">{primaryLabel}</p>
+                    ) : null}
+                    <div className="font-medium">
+                      {flexRender(primaryCell.column.columnDef.cell, primaryCell.getContext())}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="grid gap-2">
+                  {visibleCells
+                    .filter((cell) => cell.id !== primaryCell?.id)
+                    .map((cell) => {
+                      const isMeta = cell.column.id === "select" || cell.column.id === "actions"
+                      const label = getMobileLabel(cell.column.columnDef.header, cell.column.id)
+                      const value = flexRender(cell.column.columnDef.cell, cell.getContext())
+
+                      return (
+                        <div key={cell.id} className={isMeta ? "" : "grid grid-cols-1 gap-1"}>
+                          {isMeta ? (
+                            <div className="flex items-center justify-end gap-2">{value}</div>
+                          ) : (
+                            <>
+                              <p className="text-xs text-muted-foreground">{label}</p>
+                              <div className="text-sm">{value}</div>
+                            </>
+                          )}
+                        </div>
+                      )
+                    })}
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">Aucun résultat.</div>
+        )}
+      </div>
+
+      <div className="hidden sm:block rounded-md border overflow-x-auto">
+        <Table className="min-w-[720px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>

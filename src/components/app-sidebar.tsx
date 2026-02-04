@@ -12,6 +12,7 @@ import {
   BarChart3,
   Home,
   MessageSquare,
+  HelpCircle,
   ChevronDown,
   Link2,
 } from "lucide-react"
@@ -38,7 +39,6 @@ export const menuSections = [
     label: "Général",
     items: [
       { title: "Tableau de bord", url: "/dashboard", icon: Home },
-      { title: "Analyses & Croissance", url: "/dashboard/analyses", icon: BarChart3 },
     ],
   },
   {
@@ -46,11 +46,18 @@ export const menuSections = [
     items: [{ title: "Prospection & CRM", url: "/dashboard/prospection", icon: Megaphone }],
   },
   {
+    label: "Marketing",
+    items: [{ title: "Mon site", url: "/dashboard/site-web", icon: Globe }],
+  },
+  {
     label: "Production",
     items: [
       { title: "Projets & Production", url: "/dashboard/projets", icon: Briefcase },
-      { title: "Site web", url: "/dashboard/site-web", icon: Globe },
     ],
+  },
+  {
+    label: "Croissance",
+    items: [{ title: "Analyses & Croissance", url: "/dashboard/analyses", icon: BarChart3 }],
   },
   {
     label: "Administration",
@@ -484,6 +491,14 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
       <SidebarFooter>
         <SidebarMenu className="gap-1 px-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="default" isActive={pathname === "/faq"}>
+              <Link href="/faq" title="Aide" className="flex w-full items-center gap-2">
+                <HelpCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1">Aide</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="default" isActive={pathname === "/dashboard/feedback"}>
               <Link

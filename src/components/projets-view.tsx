@@ -828,7 +828,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Détails de la mission</DialogTitle>
-                <DialogDescription>Consulte et mets à jour l'avancement de cette tâche.</DialogDescription>
+                <DialogDescription>Consulte et mets à jour l’avancement de cette tâche.</DialogDescription>
               </DialogHeader>
 
               {missionDetailsTarget ? (
@@ -909,7 +909,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Checklist</p>
                     <p className="text-sm text-muted-foreground">
-                      Découpe la mission en étapes concrètes. Ça rend l'avancement mesurable.
+                      Découpe la mission en étapes concrètes. Ça rend l’avancement mesurable.
                     </p>
 
                     {missionDetailsChecklist.length === 0 ? (
@@ -1083,7 +1083,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
             <div>
               <p className="text-sm font-medium">Board agenda</p>
               <p className="text-sm text-muted-foreground">
-                Glissez-déposez bientôt. Pour l'instant, vue Kanban.
+                Glissez-déposez bientôt. Pour l’instant, vue Kanban.
               </p>
             </div>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -1122,7 +1122,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                         <Textarea
                           id="description"
                           className="min-h-[96px]"
-                          placeholder="Décrivez la tâche / l'événement..."
+                          placeholder="Décrivez la tâche / l’événement..."
                           value={newDescription}
                           onChange={(e) => setNewDescription(e.target.value)}
                         />
@@ -1266,7 +1266,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
 
                   <div className="pt-3 border-t bg-white shrink-0">
                     <DialogFooter className="mt-0">
-                      <Button type="submit">Créer l'événement</Button>
+                      <Button type="submit">Créer l’événement</Button>
                     </DialogFooter>
                   </div>
                 </form>
@@ -1284,7 +1284,7 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                 <DialogHeader>
                   <DialogTitle>Supprimer cet événement ?</DialogTitle>
                   <DialogDescription>
-                    Cette action est définitive. L'événement sera supprimé de votre planning.
+                    Cette action est définitive. L’événement sera supprimé de votre planning.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -1313,89 +1313,87 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
             </Dialog>
           </div>
 
-          <div className="mt-4 overflow-x-auto">
-            <div className="flex gap-4 min-w-max pb-2">
-              {planningBoard.columns.map((col) => (
-                <div key={col.key} className="w-[300px] shrink-0">
-                  <div className="flex items-center justify-between px-1">
-                    <p className="text-sm font-medium">{col.title}</p>
-                    <span className="text-xs text-muted-foreground">{planningBoard.byStatus[col.key].length}</span>
-                  </div>
-                  <div className="mt-2 rounded-xl border bg-card p-2 space-y-2">
-                    {planningBoard.byStatus[col.key].length === 0 ? (
-                      <div className="rounded-lg border border-dashed p-3">
-                        <p className="text-xs text-muted-foreground">Aucun élément</p>
-                      </div>
-                    ) : (
-                      planningBoard.byStatus[col.key].map((event) => (
-                        <div
-                          key={event.id}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => router.push(`/dashboard/planning/${event.id}`)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              router.push(`/dashboard/planning/${event.id}`);
-                            }
-                          }}
-                          className="w-full text-left rounded-xl border bg-background p-3 shadow-sm hover:bg-accent/40 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              {event.collaborators && event.collaborators.length > 0 ? (
-                                <div className="mb-2">
-                                  <AvatarStack collaborators={event.collaborators} />
-                                </div>
-                              ) : null}
-                              <p className="font-medium text-sm leading-snug truncate">{event.title}</p>
-                            </div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 shrink-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenuItem>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600" onClick={() => handleRequestDeleteEvent(event.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <Badge variant="outline">{event.type}</Badge>
-                            {event.projectType ? <Badge variant="secondary">{event.projectType}</Badge> : null}
-                          </div>
-
-                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {formatEventDate(event.date)}
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {event.time}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {planningBoard.columns.map((col) => (
+              <div key={col.key} className="min-w-0">
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-sm font-medium">{col.title}</p>
+                  <span className="text-xs text-muted-foreground">{planningBoard.byStatus[col.key].length}</span>
                 </div>
-              ))}
-            </div>
+                <div className="mt-2 rounded-xl border bg-card p-2 space-y-2">
+                  {planningBoard.byStatus[col.key].length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-3">
+                      <p className="text-xs text-muted-foreground">Aucun élément</p>
+                    </div>
+                  ) : (
+                    planningBoard.byStatus[col.key].map((event) => (
+                      <div
+                        key={event.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => router.push(`/dashboard/planning/${event.id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            router.push(`/dashboard/planning/${event.id}`);
+                          }
+                        }}
+                        className="w-full text-left rounded-xl border bg-background p-3 shadow-sm hover:bg-accent/40 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            {event.collaborators && event.collaborators.length > 0 ? (
+                              <div className="mb-2">
+                                <AvatarStack collaborators={event.collaborators} />
+                              </div>
+                            ) : null}
+                            <p className="font-medium text-sm leading-snug truncate">{event.title}</p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleRequestDeleteEvent(event.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Badge variant="outline">{event.type}</Badge>
+                          {event.projectType ? <Badge variant="secondary">{event.projectType}</Badge> : null}
+                        </div>
+
+                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatEventDate(event.date)}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {event.time}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
 

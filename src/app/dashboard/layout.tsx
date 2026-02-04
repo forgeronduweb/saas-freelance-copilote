@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { HelpCircle, LogOut, Search, Settings, Square } from "lucide-react";
+import { LogOut, Search, Settings, Square } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -299,10 +299,6 @@ export default function DashboardLayout({
                     <DropdownMenuItem onSelect={() => router.push("/dashboard/settings") }>
                       <Settings className="h-4 w-4" />
                       <span>Paramètres</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => router.push("/faq") }>
-                      <HelpCircle className="h-4 w-4" />
-                      <span>Aide</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
 

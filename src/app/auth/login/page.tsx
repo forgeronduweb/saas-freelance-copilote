@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { config } from '@/lib/config';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,7 +26,6 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Email ou mot de passe incorrect');
       } else {
-        // Rediriger vers le dashboard
         router.push('/dashboard');
       }
     } catch (error) {
@@ -37,54 +35,16 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemoCredentials = (userType: 'admin' | 'freelance' | 'client') => {
-    const user = config.staticUsers.find(u => u.role === userType);
-    if (user) {
-      setEmail(user.email);
-      setPassword(user.password);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Connexion à AfriLance
+            Connexion à Tuma
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Accédez à votre dashboard
+            Accédez à votre espace
           </p>
-        </div>
-
-        {/* Comptes de démonstration */}
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-3">
-            Comptes de démonstration :
-          </h3>
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => fillDemoCredentials('admin')}
-              className="w-full text-left px-3 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 rounded transition-colors"
-            >
-              👑 <strong>Admin:</strong> admin@afrilance.com / admin123
-            </button>
-            <button
-              type="button"
-              onClick={() => fillDemoCredentials('freelance')}
-              className="w-full text-left px-3 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-800 rounded transition-colors"
-            >
-              💼 <strong>Freelance:</strong> freelance@afrilance.com / freelance123
-            </button>
-            <button
-              type="button"
-              onClick={() => fillDemoCredentials('client')}
-              className="w-full text-left px-3 py-2 text-sm bg-purple-100 hover:bg-purple-200 text-purple-800 rounded transition-colors"
-            >
-              🏢 <strong>Client:</strong> client@afrilance.com / client123
-            </button>
-          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -147,11 +107,6 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            Mode démonstration - Aucune base de données requise
-          </p>
-        </div>
       </div>
     </div>
   );

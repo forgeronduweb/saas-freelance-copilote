@@ -7,6 +7,7 @@ import Quote from "@/lib/models/Quote";
 import Review from "@/lib/models/Review";
 import TimeEntry from "@/lib/models/TimeEntry";
 import User from "@/lib/models/User";
+import AnalyticsEvent from "@/lib/models/AnalyticsEvent";
 import { config } from "@/lib/config";
 
 function startOfMonth(date: Date) {
@@ -49,6 +50,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
     }
 
+    const portfolioProjects = Array.isArray(user.portfolio) ? user.portfolio.length : 0;
+    const completionSignals = [
+      Boolean(user.avatar),
+      Boolean(user.bio),
+      Array.isArray(user.professions) && user.professions.length > 0,
+      Array.isArray(user.skills) && user.skills.length > 0,
+      portfolioProjects > 0,
+    ];
+    const publicProfileCompletionPercent = Math.round(
+      (completionSignals.filter(Boolean).length / completionSignals.length) * 100
+    );
+
     const now = new Date();
     const thisMonthStart = startOfMonth(now);
     const lastMonthStart = addMonths(thisMonthStart, -1);
@@ -60,6 +73,440 @@ export async function GET(request: NextRequest) {
       TimeEntry.find({ userId: user._id }),
       Review.find({ reviewedId: user._id, reviewType: "client-to-freelance" }),
     ]);
+
+    const analyticsSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const analyticsMatchBase = {
+      siteKey: "public",
+      createdAt: { $gte: analyticsSince },
+    };
+
+    const searchEnginesRegex = [
+      /(^|\.)google\./i,
+      /(^|\.)bing\.com$/i,
+      /(^|\.)duckduckgo\.com$/i,
+      /(^|\.)search\.yahoo\.com$/i,
+      /(^|\.)yandex\./i,
+      /(^|\.)ecosia\.org$/i,
+    ];
+
+    const searchEnginesPattern =
+      "(^|\\.)google\\.|(^|\\.)bing\\.com$|(^|\\.)duckduckgo\\.com$|(^|\\.)search\\.yahoo\\.com$|(^|\\.)yandex\\.|(^|\\.)ecosia\\.org$";
+
+    const socialHostsPattern =
+      "(^|\\.)facebook\\.com$|(^|\\.)instagram\\.com$|(^|\\.)linkedin\\.com$|(^|\\.)t\\.co$|(^|\\.)twitter\\.com$|(^|\\.)x\\.com$|(^|\\.)pinterest\\.|(^|\\.)youtube\\.com$|(^|\\.)tiktok\\.com$";
+
+    const sessionInsightsAgg = await AnalyticsEvent.aggregate([
+      { $match: { ...analyticsMatchBase, event: "pageview" } },
+      { $sort: { createdAt: 1 } },
+      {
+        $group: {
+          _id: "$sessionId",
+          pageviews: { $sum: 1 },
+          visitorId: { $first: "$visitorId" },
+          createdAt: { $first: "$createdAt" },
+          landingPath: { $first: "$path" },
+          exitPath: { $last: "$path" },
+          referrerHost: { $first: "$referrerHost" },
+          utmSource: { $first: "$utmSource" },
+          utmMedium: { $first: "$utmMedium" },
+          utmCampaign: { $first: "$utmCampaign" },
+        },
+      },
+      {
+        $facet: {
+          overall: [
+            {
+              $group: {
+                _id: null,
+                sessions: { $sum: 1 },
+                pageviews: { $sum: "$pageviews" },
+                bouncedSessions: {
+                  $sum: { $cond: [{ $eq: ["$pageviews", 1] }, 1, 0] },
+                },
+              },
+            },
+          ],
+          channels: [
+            {
+              $project: {
+                pageviews: 1,
+                utmMediumLower: { $toLower: { $ifNull: ["$utmMedium", ""] } },
+                referrerHost: { $ifNull: ["$referrerHost", ""] },
+              },
+            },
+            {
+              $addFields: {
+                channel: {
+                  $switch: {
+                    branches: [
+                      {
+                        case: {
+                          $in: [
+                            "$utmMediumLower",
+                            [
+                              "cpc",
+                              "ppc",
+                              "paid",
+                              "paidsearch",
+                              "sem",
+                              "ads",
+                              "paid-social",
+                              "social-paid",
+                            ],
+                          ],
+                        },
+                        then: "Paid",
+                      },
+                      {
+                        case: { $in: ["$utmMediumLower", ["email", "newsletter"]] },
+                        then: "Email",
+                      },
+                      {
+                        case: { $in: ["$utmMediumLower", ["social", "social-organic"]] },
+                        then: "Social",
+                      },
+                      {
+                        case: { $eq: ["$referrerHost", ""] },
+                        then: "Direct",
+                      },
+                      {
+                        case: {
+                          $regexMatch: {
+                            input: "$referrerHost",
+                            regex: searchEnginesPattern,
+                            options: "i",
+                          },
+                        },
+                        then: "Organic",
+                      },
+                      {
+                        case: {
+                          $regexMatch: {
+                            input: "$referrerHost",
+                            regex: socialHostsPattern,
+                            options: "i",
+                          },
+                        },
+                        then: "Social",
+                      },
+                    ],
+                    default: "Referral",
+                  },
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$channel",
+                sessions: { $sum: 1 },
+                pageviews: { $sum: "$pageviews" },
+              },
+            },
+            { $sort: { sessions: -1 } },
+          ],
+          platforms: [
+            {
+              $project: {
+                pageviews: 1,
+                utmSource: { $ifNull: ["$utmSource", ""] },
+                referrerHost: { $ifNull: ["$referrerHost", ""] },
+              },
+            },
+            {
+              $addFields: {
+                platform: {
+                  $switch: {
+                    branches: [
+                      { case: { $ne: ["$utmSource", ""] }, then: "$utmSource" },
+                      { case: { $eq: ["$referrerHost", ""] }, then: "Direct" },
+                    ],
+                    default: "$referrerHost",
+                  },
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$platform",
+                sessions: { $sum: 1 },
+                pageviews: { $sum: "$pageviews" },
+              },
+            },
+            { $sort: { sessions: -1 } },
+            { $limit: 12 },
+          ],
+          daily: [
+            {
+              $project: {
+                day: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                visitorId: 1,
+                pageviews: 1,
+              },
+            },
+            {
+              $group: {
+                _id: "$day",
+                sessions: { $sum: 1 },
+                pageviews: { $sum: "$pageviews" },
+                visitorsSet: { $addToSet: "$visitorId" },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                date: "$_id",
+                sessions: 1,
+                pageviews: 1,
+                visitors: { $size: "$visitorsSet" },
+              },
+            },
+            { $sort: { date: 1 } },
+          ],
+          landingPages: [
+            {
+              $group: {
+                _id: "$landingPath",
+                sessions: { $sum: 1 },
+                bouncedSessions: {
+                  $sum: { $cond: [{ $eq: ["$pageviews", 1] }, 1, 0] },
+                },
+              },
+            },
+            { $sort: { sessions: -1 } },
+            { $limit: 10 },
+          ],
+          exitPages: [
+            { $group: { _id: "$exitPath", sessions: { $sum: 1 } } },
+            { $sort: { sessions: -1 } },
+            { $limit: 10 },
+          ],
+          campaigns: [
+            {
+              $group: {
+                _id: {
+                  utmSource: { $ifNull: ["$utmSource", "(none)"] },
+                  utmMedium: { $ifNull: ["$utmMedium", "(none)"] },
+                  utmCampaign: { $ifNull: ["$utmCampaign", "(none)"] },
+                },
+                sessions: { $sum: 1 },
+                pageviews: { $sum: "$pageviews" },
+              },
+            },
+            { $sort: { sessions: -1 } },
+            { $limit: 10 },
+          ],
+        },
+      },
+    ]);
+
+    const sessionInsights = sessionInsightsAgg?.[0] as
+      | {
+          overall?: { sessions: number; pageviews: number; bouncedSessions: number }[];
+          channels?: { _id: string; sessions: number; pageviews: number }[];
+          platforms?: { _id: string; sessions: number; pageviews: number }[];
+          daily?: { date: string; sessions: number; pageviews: number; visitors: number }[];
+          landingPages?: { _id: string; sessions: number; bouncedSessions: number }[];
+          exitPages?: { _id: string; sessions: number }[];
+          campaigns?: {
+            _id: { utmSource: string; utmMedium: string; utmCampaign: string };
+            sessions: number;
+            pageviews: number;
+          }[];
+        }
+      | undefined;
+
+    const bouncedSessions = Number(sessionInsights?.overall?.[0]?.bouncedSessions ?? 0);
+    const insightsSessions = Number(sessionInsights?.overall?.[0]?.sessions ?? 0);
+    const bounceRatePct =
+      insightsSessions > 0 ? Math.round((bouncedSessions / insightsSessions) * 100) : 0;
+
+    const daily = (sessionInsights?.daily ?? []).slice(-30);
+
+    const landingPages = (sessionInsights?.landingPages ?? []).map((row) => {
+      const sessions = Number(row.sessions ?? 0);
+      const bounces = Number(row.bouncedSessions ?? 0);
+      const rate = sessions > 0 ? Math.round((bounces / sessions) * 100) : 0;
+      return { path: row._id, sessions, bounceRatePct: rate };
+    });
+
+    const exitPages = (sessionInsights?.exitPages ?? []).map((row) => ({
+      path: row._id,
+      sessions: Number(row.sessions ?? 0),
+    }));
+
+    const campaigns = (sessionInsights?.campaigns ?? []).map((row) => ({
+      utmSource: row._id.utmSource,
+      utmMedium: row._id.utmMedium,
+      utmCampaign: row._id.utmCampaign,
+      sessions: Number(row.sessions ?? 0),
+      pageviews: Number(row.pageviews ?? 0),
+    }));
+
+    const channels = (sessionInsights?.channels ?? []).map((row) => ({
+      channel: row._id,
+      sessions: Number(row.sessions ?? 0),
+      pageviews: Number(row.pageviews ?? 0),
+    }));
+
+    const platforms = (sessionInsights?.platforms ?? []).map((row) => ({
+      platform: row._id,
+      sessions: Number(row.sessions ?? 0),
+      pageviews: Number(row.pageviews ?? 0),
+    }));
+
+    const [
+      pageviewsAgg,
+      visitorsAgg,
+      sessionsAgg,
+      durationAgg,
+      topPagesAgg,
+      topReferrersAgg,
+      organicPageviewsAgg,
+      organicVisitorsAgg,
+      organicSessionsAgg,
+      organicDurationAgg,
+      organicTopPagesAgg,
+      organicEnginesAgg,
+    ] = await Promise.all([
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "pageview" } },
+        { $group: { _id: null, count: { $sum: 1 } } },
+      ]),
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "pageview" } },
+        { $group: { _id: "$visitorId" } },
+        { $count: "count" },
+      ]),
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "pageview" } },
+        { $group: { _id: "$sessionId" } },
+        { $count: "count" },
+      ]),
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "duration" } },
+        { $group: { _id: null, sumDurationMs: { $sum: "$durationMs" } } },
+      ]),
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "pageview" } },
+        { $group: { _id: "$path", pageviews: { $sum: 1 } } },
+        { $sort: { pageviews: -1 } },
+        { $limit: 5 },
+      ]),
+      AnalyticsEvent.aggregate([
+        { $match: { ...analyticsMatchBase, event: "pageview" } },
+        {
+          $group: {
+            _id: { $ifNull: ["$referrerHost", "Direct"] },
+            pageviews: { $sum: 1 },
+          },
+        },
+        { $sort: { pageviews: -1 } },
+        { $limit: 5 },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "pageview",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: null, count: { $sum: 1 } } },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "pageview",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: "$visitorId" } },
+        { $count: "count" },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "pageview",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: "$sessionId" } },
+        { $count: "count" },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "duration",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: null, sumDurationMs: { $sum: "$durationMs" } } },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "pageview",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: "$path", pageviews: { $sum: 1 } } },
+        { $sort: { pageviews: -1 } },
+        { $limit: 5 },
+      ]),
+      AnalyticsEvent.aggregate([
+        {
+          $match: {
+            ...analyticsMatchBase,
+            event: "pageview",
+            referrerHost: { $in: searchEnginesRegex },
+          },
+        },
+        { $group: { _id: "$referrerHost", pageviews: { $sum: 1 } } },
+        { $sort: { pageviews: -1 } },
+        { $limit: 8 },
+      ]),
+    ]);
+
+    const trafficPageviews = Number(pageviewsAgg?.[0]?.count ?? 0);
+    const trafficVisitors = Number(visitorsAgg?.[0]?.count ?? 0);
+    const trafficSessions = Number(sessionsAgg?.[0]?.count ?? 0);
+    const totalDurationMs = Number(durationAgg?.[0]?.sumDurationMs ?? 0);
+
+    const pagesPerSession = trafficSessions > 0 ? trafficPageviews / trafficSessions : 0;
+    const avgSessionDurationSec =
+      trafficSessions > 0 ? Math.round(totalDurationMs / 1000 / trafficSessions) : 0;
+
+    const topPages = topPagesAgg.map((row: { _id: string; pageviews: number }) => ({
+      path: row._id,
+      pageviews: row.pageviews,
+    }));
+
+    const topReferrers = topReferrersAgg.map((row: { _id: string; pageviews: number }) => ({
+      referrer: row._id,
+      pageviews: row.pageviews,
+    }));
+
+    const organicPageviews = Number(organicPageviewsAgg?.[0]?.count ?? 0);
+    const organicVisitors = Number(organicVisitorsAgg?.[0]?.count ?? 0);
+    const organicSessions = Number(organicSessionsAgg?.[0]?.count ?? 0);
+    const organicTotalDurationMs = Number(organicDurationAgg?.[0]?.sumDurationMs ?? 0);
+    const organicPagesPerSession = organicSessions > 0 ? organicPageviews / organicSessions : 0;
+    const organicAvgSessionDurationSec =
+      organicSessions > 0 ? Math.round(organicTotalDurationMs / 1000 / organicSessions) : 0;
+
+    const organicTopPages = organicTopPagesAgg.map((row: { _id: string; pageviews: number }) => ({
+      path: row._id,
+      pageviews: row.pageviews,
+    }));
+
+    const organicEngines = organicEnginesAgg.map((row: { _id: string; pageviews: number }) => ({
+      engine: row._id,
+      pageviews: row.pageviews,
+    }));
 
     const paidThisMonth = paidInvoices.filter(
       (inv) => inv.paidDate && new Date(inv.paidDate) >= thisMonthStart
@@ -175,8 +622,41 @@ export async function GET(request: NextRequest) {
         target: monthlyTarget,
         percent: objectivePercent,
       },
+      website: {
+        portfolioProjects,
+        publicProfileCompletionPercent,
+        analytics: {
+          rangeDays: 30,
+          pageviews: trafficPageviews,
+          visitors: trafficVisitors,
+          sessions: trafficSessions,
+          pagesPerSession: Math.round(pagesPerSession * 100) / 100,
+          avgSessionDurationSec,
+          topPages,
+          topReferrers,
+          details: {
+            daily,
+            bounceRatePct,
+            landingPages,
+            exitPages,
+            campaigns,
+            channels,
+            platforms,
+          },
+        },
+        seo: {
+          rangeDays: 30,
+          organicPageviews,
+          organicVisitors,
+          organicSessions,
+          organicPagesPerSession: Math.round(organicPagesPerSession * 100) / 100,
+          organicAvgSessionDurationSec,
+          topLandingPages: organicTopPages,
+          engines: organicEngines,
+        },
+      },
       stats: {
-        projectsCompleted: missions.filter((m) => m.status === "Terminé").length,
+        projectsCompleted: completedThisMonth,
         projectsGrowth: completedThisMonth - completedLastMonth,
         hoursBilled: Math.round(billableThisMonthHours),
         hoursGrowth: Math.round(billableThisMonthHours - billableLastMonthHours),

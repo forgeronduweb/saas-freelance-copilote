@@ -4,9 +4,21 @@ import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import { config } from '@/lib/config';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function PUT(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request);
+    const rateLimitResult = checkRateLimit(`auth:password:${clientIP}`, RATE_LIMITS.auth);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives. Réessayez plus tard.' },
+        { status: 429 }
+      );
+    }
+
     const token = request.cookies.get('auth-token')?.value;
 
     if (!token) {
@@ -36,9 +48,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return NextResponse.json(
-        { error: 'Le nouveau mot de passe doit contenir au moins 6 caractères' },
+        { error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier la complexité du mot de passe
+    const hasNumber = /\d/.test(newPassword);
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    if (!hasNumber || !hasLetter) {
+      return NextResponse.json(
+        { error: 'Le mot de passe doit contenir au moins une lettre et un chiffre' },
         { status: 400 }
       );
     }
@@ -70,8 +92,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Hasher et sauvegarder le nouveau mot de passe
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
+    user.password = await bcrypt.hash(newPassword, config.auth.bcryptSaltRounds);
     await user.save();
 
     return NextResponse.json({ message: 'Mot de passe modifié avec succès' }, { status: 200 });

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/providers/AuthProvider";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
+import AnalyticsTracker from "@/components/analytics-tracker";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -27,12 +28,13 @@ export const metadata: Metadata = {
   description: "La plateforme tout-en-un pour gérer votre activité freelance en Côte d'Ivoire : planning, clients, marketing, finance et reporting.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const themeCookie = cookies().get("tuma-theme")?.value;
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("tuma-theme")?.value;
   const htmlClassName = themeCookie === "dark" ? "dark" : undefined;
 
   return (
@@ -63,6 +65,7 @@ export default function RootLayout({
 })();`,
           }}
         />
+        <AnalyticsTracker />
         <NextAuthProvider>
           <AuthProvider>{children}</AuthProvider>
         </NextAuthProvider>

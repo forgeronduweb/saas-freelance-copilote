@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Calculator, Loader2, Target, TrendingUp } from "lucide-react";
+import { BookOpen, Calculator, Globe, Loader2, Target, TrendingUp } from "lucide-react";
 
 import {
   Area,
@@ -22,10 +22,50 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 type ReportingData = {
   objective: { current: number; target: number; percent: number };
+  website: {
+    portfolioProjects: number;
+    publicProfileCompletionPercent: number;
+    analytics: {
+      rangeDays: number;
+      pageviews: number;
+      visitors: number;
+      sessions: number;
+      pagesPerSession: number;
+      avgSessionDurationSec: number;
+      topPages: { path: string; pageviews: number }[];
+      topReferrers: { referrer: string; pageviews: number }[];
+      details: {
+        daily: { date: string; sessions: number; pageviews: number; visitors: number }[];
+        bounceRatePct: number;
+        landingPages: { path: string; sessions: number; bounceRatePct: number }[];
+        exitPages: { path: string; sessions: number }[];
+        campaigns: {
+          utmSource: string;
+          utmMedium: string;
+          utmCampaign: string;
+          sessions: number;
+          pageviews: number;
+        }[];
+        channels: { channel: string; sessions: number; pageviews: number }[];
+        platforms?: { platform: string; sessions: number; pageviews: number }[];
+      };
+    };
+    seo: {
+      rangeDays: number;
+      organicPageviews: number;
+      organicVisitors: number;
+      organicSessions: number;
+      organicPagesPerSession: number;
+      organicAvgSessionDurationSec: number;
+      topLandingPages: { path: string; pageviews: number }[];
+      engines: { engine: string; pageviews: number }[];
+    };
+  };
   stats: {
     projectsCompleted: number;
     projectsGrowth: number;
@@ -48,6 +88,14 @@ export type AnalysesTab = "rapports" | "tjm" | "academy";
 
 function formatFCFA(amount: number): string {
   return amount.toLocaleString("fr-FR") + " FCFA";
+}
+
+function formatDurationSec(durationSec: number): string {
+  if (!Number.isFinite(durationSec) || durationSec <= 0) return "0s";
+  const minutes = Math.floor(durationSec / 60);
+  const seconds = Math.floor(durationSec % 60);
+  if (minutes <= 0) return `${seconds}s`;
+  return `${minutes}m ${seconds}s`;
 }
 
 export function AnalysesView({ activeTab }: { activeTab: AnalysesTab }) {
@@ -98,56 +146,264 @@ export function AnalysesView({ activeTab }: { activeTab: AnalysesTab }) {
     );
   }
 
+  const websitePlatforms = data.website.analytics.details?.platforms ?? [];
+
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="rapports" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-1">
+              <CardHeader className="px-4 py-3">
+                <CardDescription className="flex items-center gap-1 text-xs">
                   <Target className="h-3 w-3" /> Objectif mensuel
                 </CardDescription>
-                <CardTitle className="text-2xl">{data.objective.percent}%</CardTitle>
+                <CardTitle className="text-xl">{data.objective.percent}%</CardTitle>
               </CardHeader>
-              <CardContent>
-                <Progress value={data.objective.percent} className="mt-2" />
-                <p className="text-xs text-muted-foreground mt-2">
+              <CardContent className="px-4 pb-4 pt-0">
+                <Progress value={data.objective.percent} className="mt-1" />
+                <p className="text-[11px] leading-4 text-muted-foreground mt-1">
                   {formatFCFA(data.objective.current)} / {formatFCFA(data.objective.target)}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Conversion devis</CardDescription>
-                <CardTitle className="text-2xl">{data.performance.conversionRate}%</CardTitle>
+              <CardHeader className="px-4 py-3">
+                <CardDescription className="text-xs">Conversion devis</CardDescription>
+                <CardTitle className="text-xl">{data.performance.conversionRate}%</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">Basé sur les devis envoyés</p>
+              <CardContent className="px-4 pb-4 pt-0">
+                <p className="text-[11px] leading-4 text-muted-foreground">Basé sur les devis envoyés</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Délai paiement moyen</CardDescription>
-                <CardTitle className="text-2xl">{data.performance.avgPaymentDelay}j</CardTitle>
+              <CardHeader className="px-4 py-3">
+                <CardDescription className="text-xs">Délai paiement moyen</CardDescription>
+                <CardTitle className="text-xl">{data.performance.avgPaymentDelay}j</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">À surveiller pour la trésorerie</p>
+              <CardContent className="px-4 pb-4 pt-0">
+                <p className="text-[11px] leading-4 text-muted-foreground">À surveiller pour la trésorerie</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Satisfaction</CardDescription>
-                <CardTitle className="text-2xl">{data.performance.clientSatisfaction}/5</CardTitle>
+              <CardHeader className="px-4 py-3">
+                <CardDescription className="text-xs">Satisfaction</CardDescription>
+                <CardTitle className="text-xl">{data.performance.clientSatisfaction}/5</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">Indicateur de fidélisation</p>
+              <CardContent className="px-4 pb-4 pt-0">
+                <p className="text-[11px] leading-4 text-muted-foreground">Indicateur de fidélisation</p>
               </CardContent>
             </Card>
           </div>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Site web
+              </CardTitle>
+              <CardDescription>
+                Indicateurs trafic & référencement (sur {data.website.analytics.rangeDays} jours)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Pages vues</p>
+                  <p className="text-2xl font-semibold">{data.website.analytics.pageviews}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Visiteurs uniques</p>
+                  <p className="text-2xl font-semibold">{data.website.analytics.visitors}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Sessions</p>
+                  <p className="text-2xl font-semibold">{data.website.analytics.sessions}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Pages / session</p>
+                  <p className="text-2xl font-semibold">{data.website.analytics.pagesPerSession}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Durée moyenne session</p>
+                  <p className="text-2xl font-semibold">
+                    {formatDurationSec(data.website.analytics.avgSessionDurationSec)}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Taux de rebond</p>
+                  <p className="text-2xl font-semibold">{data.website.analytics.details.bounceRatePct}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Sessions avec 1 seule page vue</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-border my-4" />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Trafic jour par jour</p>
+                  <div className="mt-3 rounded-md border overflow-x-auto">
+                    <Table className="min-w-[520px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Sessions</TableHead>
+                          <TableHead>Visiteurs</TableHead>
+                          <TableHead>Pages vues</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {data.website.analytics.details.daily.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-20 text-center text-muted-foreground">
+                              Aucune donnée
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          data.website.analytics.details.daily
+                            .slice(-14)
+                            .reverse()
+                            .map((row) => (
+                              <TableRow key={row.date}>
+                                <TableCell className="whitespace-nowrap">{row.date}</TableCell>
+                                <TableCell>{row.sessions}</TableCell>
+                                <TableCell>{row.visitors}</TableCell>
+                                <TableCell>{row.pageviews}</TableCell>
+                              </TableRow>
+                            ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Derniers 14 jours affichés</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Plateformes / sites</p>
+                  <div className="mt-3 rounded-md border overflow-x-auto">
+                    <Table className="min-w-[520px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Plateforme</TableHead>
+                          <TableHead>Sessions</TableHead>
+                          <TableHead>Part</TableHead>
+                          <TableHead>Pages vues</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {websitePlatforms.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-20 text-center text-muted-foreground">
+                              Aucune donnée
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          websitePlatforms.map((row) => {
+                            const total = Math.max(0, Number(data.website.analytics.sessions) || 0);
+                            const share = total > 0 ? Math.round((row.sessions / total) * 100) : 0;
+                            return (
+                              <TableRow key={row.platform}>
+                                <TableCell className="max-w-[260px] truncate">
+                                  <Badge variant="outline">{row.platform}</Badge>
+                                </TableCell>
+                                <TableCell>{row.sessions}</TableCell>
+                                <TableCell>{share}%</TableCell>
+                                <TableCell>{row.pageviews}</TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Référencement (SEO)</CardTitle>
+              <CardDescription>
+                Estimation basée sur les visites depuis les moteurs de recherche (sur {data.website.seo.rangeDays} jours)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Pages vues (SEO)</p>
+                  <p className="text-2xl font-semibold">{data.website.seo.organicPageviews}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Visiteurs (SEO)</p>
+                  <p className="text-2xl font-semibold">{data.website.seo.organicVisitors}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Sessions (SEO)</p>
+                  <p className="text-2xl font-semibold">{data.website.seo.organicSessions}</p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Pages / session</p>
+                  <p className="text-2xl font-semibold">{data.website.seo.organicPagesPerSession}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Durée moyenne session</p>
+                  <p className="text-2xl font-semibold">
+                    {formatDurationSec(data.website.seo.organicAvgSessionDurationSec)}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <p className="text-sm text-muted-foreground">Moteurs / sources</p>
+                  <div className="mt-2 space-y-2">
+                    {data.website.seo.engines.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Aucune donnée</p>
+                    ) : (
+                      data.website.seo.engines.map((row) => (
+                        <div key={row.engine} className="flex items-center justify-between gap-3">
+                          <span className="text-sm truncate">{row.engine}</span>
+                          <Badge variant="outline">{row.pageviews}</Badge>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border my-4" />
+
+              <div className="rounded-lg border p-4">
+                <p className="text-sm text-muted-foreground">Pages d’entrée (SEO)</p>
+                <div className="mt-2 space-y-2">
+                  {data.website.seo.topLandingPages.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Aucune donnée</p>
+                  ) : (
+                    data.website.seo.topLandingPages.map((row) => (
+                      <div key={row.path} className="flex items-center justify-between gap-3">
+                        <span className="text-sm truncate">{row.path}</span>
+                        <Badge variant="outline">{row.pageviews}</Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -379,7 +635,7 @@ export function AnalysesView({ activeTab }: { activeTab: AnalysesTab }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-lg border">
-                  <p className="text-sm text-muted-foreground">Chiffre d'affaires mensuel à viser</p>
+                  <p className="text-sm text-muted-foreground">Chiffre d’affaires mensuel à viser</p>
                   <p className="text-2xl font-semibold">{formatFCFA(Math.round(tjm.grossNeeded))}</p>
                 </div>
                 <div className="p-4 rounded-lg border">

@@ -42,9 +42,7 @@ export const registerSchema = z.object({
   password: passwordSchema,
   firstName: nameSchema,
   lastName: nameSchema,
-  userType: z.enum(['freelance', 'client'], {
-    errorMap: () => ({ message: 'Type d\'utilisateur invalide' })
-  }),
+  userType: z.enum(['freelance', 'client']),
   phone: phoneSchema,
   companyName: z.string().max(100).optional(),
   companySize: z.enum(['1-10', '11-50', '51-200', '201-500', '500+']).optional(),
@@ -131,7 +129,7 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): {
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map(err => err.message);
+      const errors = error.issues.map((issue: z.ZodIssue) => issue.message);
       return { success: false, errors };
     }
     return { success: false, errors: ['Erreur de validation inconnue'] };

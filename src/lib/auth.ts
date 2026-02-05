@@ -7,7 +7,7 @@ import { config } from '@/lib/config';
 export interface JWTPayload {
   userId: string;
   email: string;
-  userType: 'freelance' | 'client';
+  userType: 'freelance' | 'client' | 'admin';
   iat?: number;
   exp?: number;
 }

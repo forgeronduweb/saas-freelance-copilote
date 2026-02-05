@@ -4,9 +4,27 @@ import jwt, { type Secret, type SignOptions } from 'jsonwebtoken';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import { config } from '@/lib/config';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request);
+    const rateLimitResult = checkRateLimit(`auth:login:${clientIP}`, RATE_LIMITS.auth);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives. Réessayez plus tard.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+            'X-RateLimit-Remaining': '0',
+          }
+        }
+      );
+    }
+
     // Tenter de se connecter à MongoDB si activé
     let useDatabase = config.database.enabled;
     if (useDatabase) {
@@ -65,15 +83,12 @@ export async function POST(request: NextRequest) {
       await user.save();
 
     } else {
-      // Authentification avec utilisateurs statiques
-      user = config.staticUsers.find(u => u.email === email.toLowerCase());
-      
-      if (!user || user.password !== password) {
-        return NextResponse.json(
-          { error: 'Email ou mot de passe incorrect' },
-          { status: 401 }
-        );
-      }
+      // Mode sans base de données - retourner une erreur
+      // Les utilisateurs statiques ne sont plus supportés pour des raisons de sécurité
+      return NextResponse.json(
+        { error: 'Base de données non disponible' },
+        { status: 503 }
+      );
     }
 
     // Créer le token JWT

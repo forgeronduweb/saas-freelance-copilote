@@ -103,7 +103,7 @@ export async function authenticateAndGetUser(request: NextRequest): Promise<{
 /**
  * Middleware pour vérifier le type d'utilisateur
  */
-export function requireUserType(allowedTypes: ('freelance' | 'client')[]) {
+export function requireUserType(allowedTypes: ('freelance' | 'client' | 'admin')[]) {
   return (user: JWTPayload): boolean => {
     return allowedTypes.includes(user.userType);
   };

@@ -66,7 +66,6 @@ export const menuSections = [
       { title: "Finance & Admin", url: "/dashboard/finance", icon: CreditCard },
       { title: "Entreprise", url: "/dashboard/entreprise", icon: Building2 },
       { title: "Intégrations", url: "/dashboard/integrations", icon: Link2 },
-      { title: "Paramètres de l’application", url: "/dashboard/settings/app", icon: Settings },
     ],
   },
 ] as const
@@ -510,6 +509,22 @@ export function AppSidebar({ user }: AppSidebarProps) {
               >
                 <MessageSquare className="h-4 w-4 flex-shrink-0" />
                 <span className="flex-1">Feedback</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              size="default"
+              isActive={pathname === "/dashboard/settings/app"}
+            >
+              <Link
+                href="/dashboard/settings/app"
+                title="Parametre"
+                className="flex w-full items-center gap-2"
+              >
+                <Settings className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1">Parametre</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

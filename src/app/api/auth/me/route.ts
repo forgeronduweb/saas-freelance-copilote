@@ -56,15 +56,11 @@ export async function GET(request: NextRequest) {
         );
       }
     } else {
-      // Utiliser les utilisateurs statiques
-      user = config.staticUsers.find(u => u.id === decoded.userId || u.email === decoded.email);
-      
-      if (!user) {
-        return NextResponse.json(
-          { error: 'Utilisateur non trouvé' },
-          { status: 404 }
-        );
-      }
+      // Mode sans base de données non supporté pour des raisons de sécurité
+      return NextResponse.json(
+        { error: 'Base de données non disponible' },
+        { status: 503 }
+      );
     }
 
     // Préparer la réponse utilisateur (sans le mot de passe)

@@ -28,6 +28,20 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { firstName, lastName, email, phone, companyName } = body;
 
+    // Validation de la longueur des champs
+    if (firstName && (typeof firstName !== 'string' || firstName.length > 100)) {
+      return NextResponse.json({ error: 'Prénom invalide (max 100 caractères)' }, { status: 400 });
+    }
+    if (lastName && (typeof lastName !== 'string' || lastName.length > 100)) {
+      return NextResponse.json({ error: 'Nom invalide (max 100 caractères)' }, { status: 400 });
+    }
+    if (companyName && (typeof companyName !== 'string' || companyName.length > 200)) {
+      return NextResponse.json({ error: 'Nom d\'entreprise invalide (max 200 caractères)' }, { status: 400 });
+    }
+    if (phone && (typeof phone !== 'string' || phone.length > 20)) {
+      return NextResponse.json({ error: 'Téléphone invalide (max 20 caractères)' }, { status: 400 });
+    }
+
     if (!config.database.enabled) {
       return NextResponse.json(
         { error: 'Base de données non activée' },

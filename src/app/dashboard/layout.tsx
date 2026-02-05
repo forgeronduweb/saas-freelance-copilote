@@ -295,7 +295,7 @@ export default function DashboardLayout({
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={8} className="w-44">
+                <DropdownMenuContent align="end" sideOffset={8} className="w-56">
                   <DropdownMenuGroup>
                     <DropdownMenuItem onSelect={() => router.push("/dashboard/settings") }>
                       <Settings className="h-4 w-4" />

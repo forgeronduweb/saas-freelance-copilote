@@ -1,34 +1,34 @@
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from "next/image"
+import Link from "next/link"
+import { FileQuestion } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <Card>
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50/60 via-background to-background dark:from-yellow-500/10">
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center p-6">
+
+        <Card className="w-full">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
-              <span className="text-3xl font-normal text-yellow-600">404</span>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/15">
+              <FileQuestion className="h-6 w-6 text-yellow-700 dark:text-yellow-400" />
             </div>
-            <CardTitle className="text-xl font-normal">Page introuvable</CardTitle>
-            <CardDescription className="mt-1">
-              La page que vous recherchez n&apos;existe pas
+            <CardTitle className="text-xl">Page introuvable</CardTitle>
+            <CardDescription>
+              La page que vous recherchez n&apos;existe pas (ou a été déplacée).
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Link 
-              href="/" 
-              className="w-full py-2 px-4 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors text-center block"
-            >
-              Retour à l&apos;accueil
-            </Link>
-            <Link 
-              href="/login" 
-              className="w-full py-2 px-4 border border-input bg-background text-foreground font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors text-center block"
-            >
-              Se connecter
-            </Link>
-          </CardContent>
+          <CardContent />
+          <CardFooter className="flex flex-col gap-2">
+            <Button asChild className="w-full">
+              <Link href="/">Retour à l&apos;accueil</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/login">Se connecter</Link>
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>

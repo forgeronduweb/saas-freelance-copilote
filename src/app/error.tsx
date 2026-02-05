@@ -1,5 +1,19 @@
 'use client'
 
+import Image from "next/image"
+import Link from "next/link"
+import { TriangleAlert } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
 export default function Error({
   reset,
 }: {
@@ -7,32 +21,40 @@ export default function Error({
   reset: () => void
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">
-            Oups ! Une erreur s&apos;est produite
-          </h2>
-          
-          <p className="text-slate-600 mb-6">
-            Nous rencontrons un problème technique. Veuillez réessayer.
-          </p>
-          
-          <div className="space-y-3">
-            <button
-              onClick={reset}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-            >
-              Réessayer
-            </button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50/60 via-background to-background dark:from-yellow-500/10">
+      <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center justify-center p-6">
+        <div className="mb-6 flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="Tuma"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+            priority
+          />
+          <span className="text-lg font-semibold">Tuma</span>
         </div>
+
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <TriangleAlert className="h-6 w-6 text-destructive" />
+            </div>
+            <CardTitle className="text-xl">Une erreur s&apos;est produite</CardTitle>
+            <CardDescription>
+              Nous rencontrons un problème technique. Vous pouvez réessayer ou revenir à l&apos;accueil.
+            </CardDescription>
+          </CardHeader>
+          <CardContent />
+          <CardFooter className="flex flex-col gap-2">
+            <Button type="button" onClick={reset} className="w-full">
+              Réessayer
+            </Button>
+            <Button asChild type="button" variant="outline" className="w-full">
+              <Link href="/">Retour à l&apos;accueil</Link>
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )

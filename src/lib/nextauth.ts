@@ -1,5 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import connectDB from "@/lib/mongodb";
+import User from "@/lib/models/User";
 import { config } from '@/lib/config';
 
 export const authOptions: NextAuthOptions = {
@@ -15,24 +18,32 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email et mot de passe requis");
         }
 
-        // Utiliser les utilisateurs statiques
-        const user = config.staticUsers.find(
-          u => u.email.toLowerCase() === credentials.email.toLowerCase()
-        );
+        if (!config.database.enabled) {
+          throw new Error("Base de données non disponible");
+        }
+
+        await connectDB();
+
+        const user = await User.findOne({ email: credentials.email.toLowerCase() });
 
         if (!user) {
           throw new Error("Aucun compte trouvé avec cet email");
         }
 
-        if (user.password !== credentials.password) {
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isPasswordValid) {
           throw new Error("Mot de passe incorrect");
         }
 
+        if (!user.isActive) {
+          throw new Error("Compte désactivé");
+        }
+
         return {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
-          name: user.name,
-          role: user.role,
+          name: `${user.firstName} ${user.lastName}`,
+          role: user.userType,
         };
       }
     })

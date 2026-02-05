@@ -4,9 +4,26 @@ import jwt, { type Secret, type SignOptions } from 'jsonwebtoken';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import { config } from '@/lib/config';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request);
+    const rateLimitResult = checkRateLimit(`auth:register:${clientIP}`, RATE_LIMITS.auth);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Trop de tentatives. Réessayez plus tard.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+          }
+        }
+      );
+    }
+
     // Vérifier si la base de données est activée
     if (!config.database.enabled) {
       return NextResponse.json(
@@ -60,20 +77,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validation du mot de passe
-    if (password.length < 6) {
+    // Validation du mot de passe (règles renforcées)
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 6 caractères' },
+        { error: 'Le mot de passe doit contenir au moins 8 caractères' },
+        { status: 400 }
+      );
+    }
+
+    // Vérifier la complexité du mot de passe
+    const hasNumber = /\d/.test(password);
+    const hasLetter = /[a-zA-Z]/.test(password);
+    if (!hasNumber || !hasLetter) {
+      return NextResponse.json(
+        { error: 'Le mot de passe doit contenir au moins une lettre et un chiffre' },
         { status: 400 }
       );
     }
 
     // Vérifier si l'utilisateur existe déjà
+    // Note: Message générique pour éviter l'énumération des emails
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
+      // Délai constant pour éviter les timing attacks
+      await new Promise(resolve => setTimeout(resolve, 100));
       return NextResponse.json(
-        { error: 'Un compte avec cette adresse email existe déjà' },
-        { status: 409 }
+        { error: 'Impossible de créer le compte. Vérifiez vos informations.' },
+        { status: 400 }
       );
     }
 

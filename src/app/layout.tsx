@@ -39,13 +39,17 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" className={htmlClassName} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
-      >
+      <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
   try {
+    var path = window.location && window.location.pathname ? window.location.pathname : "";
+    if (path === "/") {
+      document.documentElement.classList.remove("dark");
+      return;
+    }
+
     var raw = localStorage.getItem("appSettings");
     var settings = raw ? JSON.parse(raw) : null;
     var theme = settings && (settings.theme === "dark" || settings.theme === "light") ? settings.theme : null;
@@ -65,6 +69,10 @@ export default async function RootLayout({
 })();`,
           }}
         />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+      >
         <AnalyticsTracker />
         <NextAuthProvider>
           <AuthProvider>{children}</AuthProvider>

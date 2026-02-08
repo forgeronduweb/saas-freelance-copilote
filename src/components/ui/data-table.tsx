@@ -39,6 +39,8 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string
   actionButton?: React.ReactNode
   onRowClick?: (row: TData) => void
+  mobileVisibleColumnIds?: string[]
+  mobileInlineColumnIds?: string[]
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +50,8 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Filtrer...",
   actionButton,
   onRowClick,
+  mobileVisibleColumnIds,
+  mobileInlineColumnIds,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -75,7 +79,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-3">
         {searchKey ? (
           <Input
             placeholder={searchPlaceholder}
@@ -83,18 +87,32 @@ export function DataTable<TData, TValue>({
             onChange={(event) =>
               table.getColumn(searchKey)?.setFilterValue(event.target.value)
             }
-            className="w-full sm:max-w-sm"
+            className="flex-1 min-w-0 sm:max-w-sm"
           />
-        ) : <div />}
-        {actionButton}
+        ) : (
+          <div className="flex-1" />
+        )}
+        <div className="shrink-0">{actionButton}</div>
       </div>
       <div className="space-y-3 sm:hidden">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => {
             const visibleCells = row.getVisibleCells()
+            const mobileCells = mobileVisibleColumnIds?.length
+              ? visibleCells.filter((cell) => mobileVisibleColumnIds.includes(cell.column.id))
+              : visibleCells
+
             const primaryCell =
-              visibleCells.find((cell) => cell.column.id !== "select" && cell.column.id !== "actions") ??
-              visibleCells[0]
+              mobileCells.find((cell) => cell.column.id !== "select" && cell.column.id !== "actions") ??
+              mobileCells[0]
+
+            const inlineCells = mobileInlineColumnIds?.length
+              ? mobileCells.filter(
+                  (cell) => mobileInlineColumnIds.includes(cell.column.id) && cell.id !== primaryCell?.id
+                )
+              : []
+
+            const inlineCellIds = new Set(inlineCells.map((cell) => cell.id))
 
             const primaryLabel = primaryCell
               ? getMobileLabel(primaryCell.column.columnDef.header, primaryCell.column.id)
@@ -115,15 +133,26 @@ export function DataTable<TData, TValue>({
                     {primaryLabel ? (
                       <p className="text-xs text-muted-foreground">{primaryLabel}</p>
                     ) : null}
-                    <div className="font-medium">
-                      {flexRender(primaryCell.column.columnDef.cell, primaryCell.getContext())}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-medium min-w-0">
+                        {flexRender(primaryCell.column.columnDef.cell, primaryCell.getContext())}
+                      </div>
+                      {inlineCells.length ? (
+                        <div className="shrink-0 flex items-center gap-2">
+                          {inlineCells.map((cell) => (
+                            <div key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
 
                 <div className="grid gap-2">
-                  {visibleCells
-                    .filter((cell) => cell.id !== primaryCell?.id)
+                  {mobileCells
+                    .filter((cell) => cell.id !== primaryCell?.id && !inlineCellIds.has(cell.id))
                     .map((cell) => {
                       const isMeta = cell.column.id === "select" || cell.column.id === "actions"
                       const label = getMobileLabel(cell.column.columnDef.header, cell.column.id)

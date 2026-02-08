@@ -678,12 +678,14 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
             searchKey="name"
             searchPlaceholder="Rechercher un client..."
             onRowClick={(client) => router.push(`/dashboard/clients/${client.id}`)}
+            mobileVisibleColumnIds={["name", "status"]}
+            mobileInlineColumnIds={["status"]}
             actionButton={
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus data-icon="inline-start" />
-                    Nouveau client
+                    <span className="hidden sm:inline">Nouveau client</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>

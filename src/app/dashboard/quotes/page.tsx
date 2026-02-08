@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -47,6 +48,16 @@ type Quote = {
   status: "Brouillon" | "Envoyé" | "Accepté" | "Refusé" | "Expiré";
   createdAt: string;
 };
+
+function getInitials(value: string) {
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 type QuoteStats = {
   total: number;
@@ -143,9 +154,18 @@ export default function QuotesPage() {
       accessorKey: "clientName",
       header: "Client",
       cell: ({ row }) => (
-        <div>
-          <p className="font-medium">{row.getValue("clientName")}</p>
-          <p className="text-xs text-muted-foreground">{row.original.clientId}</p>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+              {getInitials(row.getValue("clientName") as string)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="font-medium truncate">{row.getValue("clientName")}</p>
+            <p className="text-xs text-muted-foreground">
+              Valide jusqu’au {new Date(row.original.validUntil).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
         </div>
       ),
     },
@@ -303,17 +323,19 @@ export default function QuotesPage() {
       </div>
 
       {/* Quotes Table */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Devis</CardTitle>
-            <CardDescription>Gérez vos devis et convertissez-les en factures</CardDescription>
-          </div>
+      <DataTable 
+        columns={columns} 
+        data={quotes} 
+        searchKey="clientName" 
+        searchPlaceholder="Rechercher par client..."
+        mobileVisibleColumnIds={["clientName", "status"]}
+        mobileInlineColumnIds={["status"]}
+        actionButton={
           <Dialog>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Nouveau devis
+                <Plus data-icon="inline-start" />
+                <span className="hidden sm:inline">Nouveau devis</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -348,16 +370,8 @@ export default function QuotesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </CardHeader>
-        <CardContent>
-          <DataTable 
-            columns={columns} 
-            data={quotes} 
-            searchKey="clientName" 
-            searchPlaceholder="Rechercher par client..."
-          />
-        </CardContent>
-      </Card>
+        }
+      />
     </div>
   );
 }

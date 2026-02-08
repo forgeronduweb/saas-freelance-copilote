@@ -7,6 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -92,6 +93,16 @@ type LegalDoc = {
   type: string;
   updatedAt: string;
 };
+
+function getInitials(value: string) {
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export type FinanceTab = "factures" | "devis" | "depenses" | "charges" | "documents";
 
@@ -329,6 +340,21 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
       {
         accessorKey: "client",
         header: "Client",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                {getInitials(row.getValue("client") as string)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="font-medium truncate">{row.getValue("client")}</p>
+              <p className="text-xs text-muted-foreground">
+                Échéance {new Date(row.original.dueDate).toLocaleDateString("fr-FR")}
+              </p>
+            </div>
+          </div>
+        ),
       },
       {
         accessorKey: "amount",
@@ -430,6 +456,21 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
     {
       accessorKey: "clientName",
       header: "Client",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+              {getInitials(row.getValue("clientName") as string)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="font-medium truncate">{row.getValue("clientName")}</p>
+            <p className="text-xs text-muted-foreground">
+              Valide jusqu’au {new Date(row.original.validUntil).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        </div>
+      ),
     },
     {
       accessorKey: "total",
@@ -446,7 +487,16 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
     {
       accessorKey: "validUntil",
       header: "Validité",
-      cell: ({ row }) => new Date(row.getValue("validUntil")).toLocaleDateString("fr-FR"),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("validUntil") as string);
+        const isExpired = date < new Date() && row.original.status === "Envoyé";
+        return (
+          <span className={isExpired ? "text-red-500" : ""}>
+            {date.toLocaleDateString("fr-FR")}
+            {isExpired && " (Expiré)"}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -454,11 +504,11 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
         const colors: Record<string, string> = {
-          Brouillon: "bg-gray-50 text-gray-700 border-gray-200",
-          Envoyé: "bg-blue-50 text-blue-700 border-blue-200",
-          Accepté: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          Refusé: "bg-red-50 text-red-700 border-red-200",
-          Expiré: "bg-orange-50 text-orange-700 border-orange-200",
+          Brouillon: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/40 dark:text-gray-200 dark:border-gray-700",
+          Envoyé: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800",
+          Accepté: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800",
+          Refusé: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-200 dark:border-red-800",
+          Expiré: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-800",
         };
         return (
           <Badge variant="secondary" className={colors[status]}>
@@ -595,17 +645,20 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
 
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="factures" className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Factures</CardTitle>
-                <CardDescription>Liste de toutes vos factures</CardDescription>
-              </div>
+          <DataTable
+            columns={invoiceColumns}
+            data={invoices}
+            searchKey="client"
+            searchPlaceholder="Rechercher par client..."
+            onRowClick={(invoice) => router.push(`/dashboard/finance/${invoice.id}`)}
+            mobileVisibleColumnIds={["client", "status"]}
+            mobileInlineColumnIds={["status"]}
+            actionButton={
               <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nouvelle facture
+                  <Button>
+                    <Plus data-icon="inline-start" />
+                    <span className="hidden sm:inline">Nouvelle facture</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
@@ -616,31 +669,25 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
                   <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={invoiceColumns}
-                data={invoices}
-                searchKey="client"
-                searchPlaceholder="Rechercher par client..."
-                onRowClick={(invoice) => router.push(`/dashboard/finance/${invoice.id}`)}
-              />
-            </CardContent>
-          </Card>
+            }
+          />
         </TabsContent>
 
         <TabsContent value="devis" className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Devis</CardTitle>
-                <CardDescription>Gérez vos devis et convertissez-les en factures</CardDescription>
-              </div>
+          <DataTable
+            columns={quoteColumns}
+            data={quotes}
+            searchKey="clientName"
+            searchPlaceholder="Rechercher par client..."
+            onRowClick={(quote) => router.push(`/dashboard/finance/devis/${quote.id}`)}
+            mobileVisibleColumnIds={["clientName", "status"]}
+            mobileInlineColumnIds={["status"]}
+            actionButton={
               <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nouveau devis
+                  <Button>
+                    <Plus data-icon="inline-start" />
+                    <span className="hidden sm:inline">Nouveau devis</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
@@ -651,17 +698,8 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
                   <QuoteForm onSubmit={handleCreateQuote} onCancel={() => setQuoteDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={quoteColumns}
-                data={quotes}
-                searchKey="clientName"
-                searchPlaceholder="Rechercher par client..."
-                onRowClick={(quote) => router.push(`/dashboard/finance/devis/${quote.id}`)}
-              />
-            </CardContent>
-          </Card>
+            }
+          />
         </TabsContent>
 
         <TabsContent value="depenses" className="mt-6">

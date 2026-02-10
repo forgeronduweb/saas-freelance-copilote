@@ -6,5 +6,5 @@ import { Toaster as Sonner } from "sonner";
 type ToasterProps = ComponentProps<typeof Sonner>;
 
 export function Toaster(props: ToasterProps) {
-  return <Sonner closeButton richColors position="bottom-right" {...props} />;
+  return <Sonner closeButton richColors position="top-center" {...props} />;
 }

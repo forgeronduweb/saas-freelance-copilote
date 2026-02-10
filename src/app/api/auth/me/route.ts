@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
+import UserSession from '@/lib/models/UserSession';
 import { config } from '@/lib/config';
 
 export async function GET(request: NextRequest) {
@@ -36,10 +38,130 @@ export async function GET(request: NextRequest) {
     }
 
     let user;
+    let rotatedToken: string | null = null;
 
     if (config.database.enabled) {
       // Récupérer l'utilisateur depuis la base de données
       await connectDB();
+
+      const userAgent = request.headers.get('user-agent') || undefined;
+      const chPlatform = request.headers.get('sec-ch-ua-platform') || undefined;
+      const chModel = request.headers.get('sec-ch-ua-model') || undefined;
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip') || undefined;
+
+      const normalizeCH = (value?: string) => {
+        if (!value) return undefined;
+        const v = value.trim();
+        if (!v) return undefined;
+        return v.replaceAll('"', '');
+      };
+
+      const getBrowserName = (ua?: string) => {
+        if (!ua) return undefined;
+        if (ua.includes('Edg/')) return 'Edge';
+        if (ua.includes('Chrome/')) return 'Chrome';
+        if (ua.includes('Firefox/')) return 'Firefox';
+        if (ua.includes('Safari/') && ua.includes('Version/')) return 'Safari';
+        return undefined;
+      };
+
+      const getDeviceModel = (ua?: string) => {
+        const modelFromCH = normalizeCH(chModel);
+        if (modelFromCH) return modelFromCH;
+        if (!ua) return undefined;
+        if (ua.includes('iPhone')) return 'iPhone';
+        if (ua.includes('iPad')) return 'iPad';
+        const androidMatch = ua.match(/Android[^;]*;\s*([^;]+?)\s*Build\//i);
+        if (androidMatch?.[1]) return androidMatch[1].trim();
+        const platform = normalizeCH(chPlatform);
+        if (platform) return platform;
+        return undefined;
+      };
+
+      const getDeviceType = (ua?: string): 'desktop' | 'mobile' | 'tablet' | 'unknown' => {
+        if (!ua) return 'unknown';
+        const v = ua.toLowerCase();
+        if (v.includes('ipad') || v.includes('tablet')) return 'tablet';
+        if (v.includes('mobi') || v.includes('android') || v.includes('iphone')) return 'mobile';
+        return 'desktop';
+      };
+
+      const getDeviceName = (deviceType: 'desktop' | 'mobile' | 'tablet' | 'unknown', ua?: string) => {
+        const platform = normalizeCH(chPlatform);
+        const model = getDeviceModel(ua);
+        if (deviceType === 'mobile' || deviceType === 'tablet') {
+          return model || (deviceType === 'mobile' ? 'Mobile' : 'Tablette');
+        }
+        const browser = getBrowserName(ua);
+        if (platform && browser) return `${browser} (${platform})`;
+        if (platform) return `${platform} (Desktop)`;
+        return 'Ordinateur';
+      };
+
+      const getExpiresAt = (): Date => {
+        const raw = String(config.auth.jwtExpiresIn || '7d');
+        const match = raw.match(/^(\d+)([smhd])$/);
+        if (!match) return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const value = Number(match[1]);
+        const unit = match[2];
+        const ms =
+          unit === 's' ? value * 1000 :
+          unit === 'm' ? value * 60 * 1000 :
+          unit === 'h' ? value * 60 * 60 * 1000 :
+          value * 24 * 60 * 60 * 1000;
+        return new Date(Date.now() + ms);
+      };
+
+      if (!decoded?.sessionId) {
+        const sessionId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
+        const expiresAt = getExpiresAt();
+
+        await UserSession.create({
+          userId: decoded.userId,
+          sessionId,
+          userAgent,
+          ip,
+          deviceName: getDeviceName(getDeviceType(userAgent), userAgent),
+          deviceModel: getDeviceModel(userAgent),
+          deviceType: getDeviceType(userAgent),
+          lastSeenAt: new Date(),
+          expiresAt,
+        });
+
+        rotatedToken = jwt.sign(
+          {
+            userId: decoded.userId,
+            email: decoded.email,
+            userType: decoded.userType,
+            sessionId,
+          },
+          config.auth.jwtSecret,
+          { expiresIn: config.auth.jwtExpiresIn } as any
+        );
+
+        decoded.sessionId = sessionId;
+      }
+
+      if (decoded?.sessionId) {
+        const session = await UserSession.findOne({
+          userId: decoded.userId,
+          sessionId: decoded.sessionId,
+          revokedAt: null,
+          expiresAt: { $gt: new Date() },
+        });
+
+        if (!session) {
+          return NextResponse.json(
+            { error: 'Session révoquée ou expirée' },
+            { status: 401 }
+          );
+        }
+
+        session.lastSeenAt = new Date();
+        await session.save();
+      }
+
       user = await User.findById(decoded.userId).select('-password');
       
       if (!user) {
@@ -93,13 +215,25 @@ export async function GET(request: NextRequest) {
       createdAt: user.createdAt,
     };
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         user: userResponse,
         authenticated: true,
       },
       { status: 200 }
     );
+
+    if (rotatedToken) {
+      response.cookies.set('auth-token', rotatedToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+      });
+    }
+
+    return response;
 
   } catch (error) {
     console.error('Erreur lors de la vérification de l\'authentification:', error);

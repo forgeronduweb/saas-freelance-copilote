@@ -8,6 +8,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   userType: 'freelance' | 'client' | 'admin';
+  sessionId?: string;
   iat?: number;
   exp?: number;
 }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { toast } from "sonner";
 
 export default function FreelanceSignup() {
   const router = useRouter();
@@ -27,7 +28,6 @@ export default function FreelanceSignup() {
   };
 
   const [errors, setErrors] = useState<string[]>([]);
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +83,9 @@ export default function FreelanceSignup() {
         if (data.token) {
           localStorage.setItem('token', data.token);
         }
-        setSuccess(true);
+        toast.success("Compte créé avec succès", {
+          description: "Redirection en cours...",
+        });
         router.replace('/onboarding/professions');
       } else {
         if (data.details && Array.isArray(data.details)) {
@@ -323,27 +325,6 @@ export default function FreelanceSignup() {
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Message de succès */}
-            {success && (
-              <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-green-800">
-                      Compte créé avec succès !
-                    </h3>
-                    <div className="mt-2 text-sm text-green-700">
-                      Redirection vers la page de connexion...
                     </div>
                   </div>
                 </div>

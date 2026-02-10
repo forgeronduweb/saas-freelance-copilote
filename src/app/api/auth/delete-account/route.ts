@@ -17,6 +17,7 @@ import Project from '@/lib/models/Project';
 import Application from '@/lib/models/Application';
 import Message from '@/lib/models/Message';
 import Review from '@/lib/models/Review';
+import UserSession from '@/lib/models/UserSession';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -42,6 +43,7 @@ export async function DELETE(request: NextRequest) {
       Opportunity.deleteMany({ userId }),
       Mission.deleteMany({ userId }),
       ProjectDocument.deleteMany({ userId }),
+      UserSession.deleteMany({ userId }),
 
       // Données marketplace (si présentes)
       Project.deleteMany({ clientId: userId }),

@@ -1,7 +1,28 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import connectDB from '@/lib/mongodb';
+import UserSession from '@/lib/models/UserSession';
+import { config } from '@/lib/config';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const token = request.cookies.get('auth-token')?.value;
+
+    if (token && config.database.enabled) {
+      try {
+        const decoded = jwt.verify(token, config.auth.jwtSecret) as any;
+        if (decoded?.userId && decoded?.sessionId) {
+          await connectDB();
+          await UserSession.findOneAndUpdate(
+            { userId: decoded.userId, sessionId: decoded.sessionId, revokedAt: null, expiresAt: { $gt: new Date() } },
+            { $set: { revokedAt: new Date() } }
+          );
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     // Créer la réponse
     const response = NextResponse.json(
       { message: 'Déconnexion réussie' },

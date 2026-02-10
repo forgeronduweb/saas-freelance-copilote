@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/User';
+import UserSession from '@/lib/models/UserSession';
 import { config } from '@/lib/config';
 
 export async function PUT(request: NextRequest) {
@@ -50,6 +51,25 @@ export async function PUT(request: NextRequest) {
     }
 
     await connectDB();
+
+    if (decoded?.sessionId) {
+      const session = await UserSession.findOne({
+        userId: decoded.userId,
+        sessionId: decoded.sessionId,
+        revokedAt: null,
+        expiresAt: { $gt: new Date() },
+      });
+
+      if (!session) {
+        return NextResponse.json(
+          { error: 'Session révoquée ou expirée' },
+          { status: 401 }
+        );
+      }
+
+      session.lastSeenAt = new Date();
+      await session.save();
+    }
 
     const user = await User.findById(decoded.userId);
     if (!user) {

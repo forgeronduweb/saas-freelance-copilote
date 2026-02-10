@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, Mail, Phone, Building, Bell, Shield, CreditCard, Loader2, Check } from "lucide-react";
+import { User, Mail, Phone, Building, Bell, Shield, CreditCard, Loader2, Check, Monitor, Smartphone, Tablet, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const profileSchema = z.object({
@@ -43,6 +44,19 @@ const passwordSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
+interface DeviceSession {
+  sessionId: string;
+  deviceName: string | null;
+  deviceModel: string | null;
+  userAgent: string | null;
+  ip: string | null;
+  deviceType: "desktop" | "mobile" | "tablet" | "unknown";
+  lastSeenAt: string;
+  createdAt: string;
+  expiresAt: string;
+  isExpired: boolean;
+}
+
 interface NotificationSetting {
   key: string;
   title: string;
@@ -61,6 +75,12 @@ export default function SettingsPage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const [deviceSessions, setDeviceSessions] = useState<DeviceSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [deviceSessionsLoading, setDeviceSessionsLoading] = useState(false);
+  const [deviceSessionsError, setDeviceSessionsError] = useState<string | null>(null);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState<NotificationSetting[]>([
     { key: "messages", title: "Nouveaux messages", desc: "Recevoir une notification pour chaque nouveau message", enabled: true },
@@ -100,6 +120,96 @@ export default function SettingsPage() {
       });
     }
   }, [user, profileForm]);
+
+  const fetchDeviceSessions = async () => {
+    setDeviceSessionsLoading(true);
+    setDeviceSessionsError(null);
+
+    try {
+      const res = await fetch("/api/auth/sessions", {
+        credentials: "include",
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setDeviceSessions([]);
+        setCurrentSessionId(null);
+        setDeviceSessionsError(result?.error || "Erreur lors du chargement des sessions");
+        return;
+      }
+
+      setDeviceSessions(Array.isArray(result.sessions) ? result.sessions : []);
+      setCurrentSessionId(result.currentSessionId || null);
+    } catch {
+      setDeviceSessions([]);
+      setCurrentSessionId(null);
+      setDeviceSessionsError("Erreur de connexion au serveur");
+    } finally {
+      setDeviceSessionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeviceSessions();
+
+    const interval = window.setInterval(() => {
+      fetchDeviceSessions();
+    }, 60_000);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchDeviceSessions();
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
+  const revokeSession = async (sessionId: string) => {
+    if (revokingSessionId) return;
+
+    setRevokingSessionId(sessionId);
+    try {
+      const res = await fetch(`/api/auth/sessions/${sessionId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        toast.error("Impossible de révoquer la session", {
+          description: result?.error || "Erreur serveur",
+        });
+        return;
+      }
+
+      const isCurrent = currentSessionId && sessionId === currentSessionId;
+
+      toast.success("Session révoquée", {
+        description: isCurrent ? "Cette session a été déconnectée" : "L’appareil a été déconnecté",
+      });
+
+      if (isCurrent) {
+        router.replace("/login");
+        return;
+      }
+
+      await fetchDeviceSessions();
+    } catch {
+      toast.error("Impossible de révoquer la session", {
+        description: "Erreur de connexion au serveur",
+      });
+    } finally {
+      setRevokingSessionId(null);
+    }
+  };
 
   const handleProfileSubmit = async (data: ProfileFormData) => {
     setProfileSaving(true);
@@ -206,6 +316,19 @@ export default function SettingsPage() {
       case 'pro-elite': return '29 000 FCFA';
       case 'premium': return '15 000 FCFA';
       default: return '0 FCFA';
+    }
+  };
+
+  const getDeviceIcon = (deviceType: DeviceSession["deviceType"]) => {
+    switch (deviceType) {
+      case "mobile":
+        return <Smartphone className="h-4 w-4" />;
+      case "tablet":
+        return <Tablet className="h-4 w-4" />;
+      case "desktop":
+        return <Monitor className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
     }
   };
 
@@ -387,6 +510,81 @@ export default function SettingsPage() {
                   <Button type="button" variant="outline" size="sm">Configurer</Button>
                 </div>
               </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="min-w-0">
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" /> Appareils connectés
+                </CardTitle>
+                <CardDescription>Liste des appareils où votre compte est actuellement connecté.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {deviceSessionsError ? (
+                <p className="text-sm text-red-500">{deviceSessionsError}</p>
+              ) : null}
+
+              {!deviceSessionsLoading && deviceSessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun appareil enregistré.</p>
+              ) : null}
+
+              {deviceSessions.map((s) => {
+                const isCurrent = currentSessionId && s.sessionId === currentSessionId;
+                const primaryLabel = s.deviceName ||
+                  (s.deviceType === "mobile"
+                    ? "Mobile"
+                    : s.deviceType === "tablet"
+                    ? "Tablette"
+                    : s.deviceType === "desktop"
+                    ? "Ordinateur"
+                    : "Appareil");
+                const modelLabel = s.deviceModel && s.deviceModel !== primaryLabel ? s.deviceModel : "";
+                const uaLabel = s.userAgent && s.userAgent !== primaryLabel && s.userAgent !== modelLabel ? s.userAgent : "";
+                return (
+                  <div key={s.sessionId} className="flex items-start justify-between gap-3 rounded-lg border p-3">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="mt-0.5 text-muted-foreground">{getDeviceIcon(s.deviceType)}</div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-medium">{primaryLabel}</p>
+                          {isCurrent ? <Badge variant="secondary">Cette session</Badge> : null}
+                          {s.isExpired ? <Badge variant="outline">Expirée</Badge> : null}
+                        </div>
+                        {modelLabel ? (
+                          <p className="text-xs text-muted-foreground truncate">Modèle: {modelLabel}</p>
+                        ) : null}
+                        {uaLabel ? (
+                          <p className="text-xs text-muted-foreground truncate">{uaLabel}</p>
+                        ) : null}
+                        {!modelLabel && !uaLabel ? (
+                          <p className="text-xs text-muted-foreground truncate">User-Agent inconnu</p>
+                        ) : null}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {s.ip ? `IP ${s.ip} • ` : ""}Dernière activité {new Date(s.lastSeenAt).toLocaleString("fr-FR")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant={isCurrent ? "destructive" : "outline"}
+                      size="sm"
+                      disabled={revokingSessionId === s.sessionId}
+                      onClick={() => revokeSession(s.sessionId)}
+                      className="shrink-0"
+                    >
+                      {revokingSessionId === s.sessionId ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         </div>

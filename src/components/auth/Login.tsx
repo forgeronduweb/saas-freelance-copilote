@@ -1,10 +1,12 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Adresse email invalide"),
@@ -14,9 +16,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -49,12 +51,11 @@ export default function Login() {
 
       localStorage.setItem('user', JSON.stringify(result.user));
       localStorage.setItem('token', result.token);
-      
-      setSuccess(true);
-      
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 500);
+
+      toast.success("Connexion réussie", {
+        description: "Redirection en cours...",
+      });
+      router.replace('/dashboard');
       
     } catch {
       setError('Erreur de connexion au serveur');
@@ -135,10 +136,6 @@ export default function Login() {
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
-              )}
-
-              {success && (
-                <p className="text-sm text-emerald-600">Connexion réussie ! Redirection...</p>
               )}
 
               <button

@@ -177,7 +177,7 @@ export default function PublicQuotePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-3xl p-6 space-y-6">
+      <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 space-y-4 sm:space-y-6">
         {quote.provider ? (
           <Card>
             <CardHeader>
@@ -202,14 +202,17 @@ export default function PublicQuotePage() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
               <div>
                 <CardTitle className="text-lg">{quote.title || "Devis"}</CardTitle>
                 <CardDescription>
                   {quote.id} • {quote.clientName}
                 </CardDescription>
               </div>
-              <Badge variant="secondary" className={statusColor[quote.status]}>
+              <Badge
+                variant="secondary"
+                className={"whitespace-nowrap self-start sm:self-auto " + statusColor[quote.status]}
+              >
                 {quote.status}
               </Badge>
             </div>
@@ -217,54 +220,54 @@ export default function PublicQuotePage() {
           <CardContent className="space-y-4">
             {quote.description ? <p className="text-sm text-muted-foreground">{quote.description}</p> : null}
 
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
+            <div className="rounded-lg border overflow-x-auto">
+              <table className="w-full min-w-[560px]">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left p-3 text-sm">Description</th>
-                    <th className="text-center p-3 text-sm">Qté</th>
-                    <th className="text-right p-3 text-sm">PU</th>
-                    <th className="text-right p-3 text-sm">Total</th>
+                    <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Description</th>
+                    <th className="text-center p-2 sm:p-3 text-xs sm:text-sm">Qté</th>
+                    <th className="text-right p-2 sm:p-3 text-xs sm:text-sm">PU</th>
+                    <th className="text-right p-2 sm:p-3 text-xs sm:text-sm">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {quote.items.map((item, idx) => (
                     <tr key={idx} className="border-t">
-                      <td className="p-3">{item.description}</td>
-                      <td className="p-3 text-center">{item.quantity}</td>
-                      <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
-                      <td className="p-3 text-right">{formatCurrency(item.total ?? item.quantity * item.unitPrice)}</td>
+                      <td className="p-2 sm:p-3 text-sm">{item.description}</td>
+                      <td className="p-2 sm:p-3 text-center text-sm">{item.quantity}</td>
+                      <td className="p-2 sm:p-3 text-right text-sm">{formatCurrency(item.unitPrice)}</td>
+                      <td className="p-2 sm:p-3 text-right text-sm">{formatCurrency(item.total ?? item.quantity * item.unitPrice)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot className="bg-muted/50">
                   <tr className="border-t">
-                    <td colSpan={3} className="p-3 text-right">Total HT</td>
-                    <td className="p-3 text-right">{formatCurrency(totalHT)}</td>
+                    <td colSpan={3} className="p-2 sm:p-3 text-right text-sm">Total HT</td>
+                    <td className="p-2 sm:p-3 text-right text-sm">{formatCurrency(totalHT)}</td>
                   </tr>
                   <tr>
-                    <td colSpan={3} className="p-3 text-right">TVA (18%)</td>
-                    <td className="p-3 text-right">{formatCurrency(tva)}</td>
+                    <td colSpan={3} className="p-2 sm:p-3 text-right text-sm">TVA (18%)</td>
+                    <td className="p-2 sm:p-3 text-right text-sm">{formatCurrency(tva)}</td>
                   </tr>
                   <tr className="border-t">
-                    <td colSpan={3} className="p-3 text-right text-lg">Total TTC</td>
-                    <td className="p-3 text-right text-lg">{formatCurrency(totalTTC)}</td>
+                    <td colSpan={3} className="p-2 sm:p-3 text-right text-base sm:text-lg">Total TTC</td>
+                    <td className="p-2 sm:p-3 text-right text-base sm:text-lg">{formatCurrency(totalTTC)}</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
 
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Valide jusqu'au: {new Date(quote.validUntil).toLocaleDateString("fr-FR")}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
               <Button
                 onClick={() => submitDecision("accept")}
                 disabled={isDecided || sendingDecision !== null}
-                className="bg-yellow-500 text-black hover:bg-yellow-600"
+                className="w-full sm:w-auto bg-yellow-500 text-black hover:bg-yellow-600"
               >
                 {sendingDecision === "accept" ? "Envoi..." : "Accepter"}
               </Button>
@@ -272,7 +275,7 @@ export default function PublicQuotePage() {
                 variant="outline"
                 onClick={() => submitDecision("refuse")}
                 disabled={isDecided || sendingDecision !== null}
-                className="text-red-600"
+                className="w-full sm:w-auto text-red-600"
               >
                 {sendingDecision === "refuse" ? "Envoi..." : "Refuser"}
               </Button>
@@ -294,7 +297,11 @@ export default function PublicQuotePage() {
                 rows={4}
               />
               <div className="flex justify-end">
-                <Button onClick={submitSuggestion} disabled={sendingSuggestion || !message.trim()}>
+                <Button
+                  onClick={submitSuggestion}
+                  disabled={sendingSuggestion || !message.trim()}
+                  className="w-full sm:w-auto"
+                >
                   {sendingSuggestion ? "Envoi..." : "Envoyer la suggestion"}
                 </Button>
               </div>

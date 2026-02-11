@@ -17,7 +17,7 @@ export default function Hero() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 transition duration-500">
-          <a href="#how-it-works" className="hover:text-yellow-600 transition">
+          <a href="#demo" className="hover:text-yellow-600 transition">
             Comment ça marche
           </a>
           <a href="#pricing" className="hover:text-yellow-600 transition">
@@ -27,7 +27,7 @@ export default function Hero() {
 
         <div className="hidden md:block space-x-3">
           <Link href="/signup" className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 transition text-black rounded-md">
-            Commencer
+            Commencer gratuitement
           </Link>
           <Link href="/login" className="hover:bg-slate-100 transition px-6 py-2 border border-yellow-500 text-yellow-600 rounded-md">
             Connexion
@@ -51,11 +51,14 @@ export default function Hero() {
         <a href="#services" onClick={() => setMobileMenuOpen(false)}>
           Fonctionnalités
         </a>
+        <a href="#demo" onClick={() => setMobileMenuOpen(false)}>
+          Démo
+        </a>
         <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>
           Tarifs
         </a>
         <Link href="/signup" className="px-8 py-3 bg-yellow-400 text-black rounded-md" onClick={() => setMobileMenuOpen(false)}>
-          Commencer
+          Commencer gratuitement
         </Link>
         <Link href="/login" className="px-8 py-3 border border-yellow-500 text-yellow-600 rounded-md" onClick={() => setMobileMenuOpen(false)}>
           Connexion
@@ -79,7 +82,7 @@ export default function Hero() {
             NOUVEAU
           </span>
           <p className="flex items-center gap-1">
-            <span>Essai gratuit 14 jours</span>
+            <span>Plan gratuit (limité)</span>
             <svg className="mt-0.5" width="6" height="9" viewBox="0 0 6 9" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="m1 1 4 3.5L1 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -93,7 +96,7 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p className="text-center text-base text-slate-700 max-w-lg mt-4">
-          Autonomie commerciale, rigueur administrative et efficacité opérationnelle. Gagnez 15h par semaine et développez votre activité en toute sérénité.
+          Devis, factures, relances et suivi client en un seul endroit. Gagnez du temps, encaissez plus vite et gardez le contrôle sur votre activité.
         </p>
 
         {/* CTA Buttons */}
@@ -104,8 +107,8 @@ export default function Hero() {
               <path d="M4.166 10h11.667m0 0L9.999 4.165m5.834 5.833-5.834 5.834" stroke="#000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
-          <Link href="#pricing" className="border border-slate-600 active:scale-95 hover:bg-slate-100 transition text-slate-600 rounded-lg px-8 h-11 flex items-center">
-            Voir les tarifs
+          <Link href="#demo" className="border border-slate-600 active:scale-95 hover:bg-slate-100 transition text-slate-600 rounded-lg px-8 h-11 flex items-center">
+            Voir la démo (60s)
           </Link>
         </div>
 

@@ -119,15 +119,15 @@ const Services = () => {
                             Prêt à centraliser votre activité ?
                         </h3>
                         <p className="text-orange-100 mb-6 max-w-2xl mx-auto">
-                            Rejoignez les freelances qui ont déjà gagné 15h par semaine en automatisant leur administration. Essai gratuit 14 jours.
+                            Commencez gratuitement avec un plan limité, puis passez à Pro pour débloquer toutes les fonctionnalités.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <button className="bg-white hover:bg-orange-50 text-orange-600 px-8 py-3 rounded-full font-medium transition-colors shadow-lg">
-                                Démarrer l'essai gratuit
-                            </button>
-                            <button className="border-2 border-white hover:bg-white hover:text-orange-600 text-white px-8 py-3 rounded-full font-medium transition-colors">
-                                Voir la démo
-                            </button>
+                            <a href="/signup" className="bg-white hover:bg-orange-50 text-orange-600 px-8 py-3 rounded-full font-medium transition-colors shadow-lg">
+                                Commencer gratuitement
+                            </a>
+                            <a href="#pricing" className="border-2 border-white hover:bg-white hover:text-orange-600 text-white px-8 py-3 rounded-full font-medium transition-colors">
+                                Voir les plans
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -41,9 +41,9 @@ const Pricing = () => {
                     "Templates premium inclus"
                 ] : [])
             ],
-            cta: "Essai gratuit 14 jours",
+            cta: "Passer à Pro",
             popular: true,
-            buttonStyle: "bg-yellow-400 hover:bg-yellow-500 text-black transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+            buttonStyle: "bg-yellow-400 hover:bg-yellow-500 text-black transition-all duration-300 transform hover:scale-105"
         },
         {
             name: "Business",
@@ -63,7 +63,7 @@ const Pricing = () => {
                     "Consultation stratégie incluse"
                 ] : [])
             ],
-            cta: "Essai gratuit 14 jours",
+            cta: "Passer à Business",
             popular: false,
             buttonStyle: "border border-yellow-200 hover:bg-yellow-500 hover:text-white hover:border-yellow-500 text-yellow-500 transition-all duration-300 transform hover:scale-105"
         }
@@ -170,20 +170,20 @@ const Pricing = () => {
                             Prêt à optimiser votre activité ? 
                         </h3>
                         <p className="mb-6 max-w-2xl mx-auto">
-                            Accès anticipé : rejoignez la liste d’attente et soyez parmi les premiers à tester Tuma.
+                            Commencez gratuitement, puis débloquez les fonctionnalités Pro quand vous en avez besoin.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
                                 href="/signup"
                                 className="bg-black hover:bg-slate-800 text-white px-8 py-3 rounded-full font-medium transition-colors text-center"
                             >
-                                Essai gratuit 14 jours
+                                Commencer gratuitement
                             </Link>
                             <Link
-                                href="/contact"
+                                href="#pricing"
                                 className="border-2 border-black hover:bg-black hover:text-white text-black px-8 py-3 rounded-full font-medium transition-colors text-center"
                             >
-                                Planifier une démo
+                                Voir les plans
                             </Link>
                         </div>
                     </div>

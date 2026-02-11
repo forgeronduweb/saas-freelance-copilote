@@ -101,6 +101,18 @@ export async function GET(request: NextRequest) {
       const sessionId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
       const expiresAt = getExpiresAt();
 
+      // Révoquer les anciennes sessions du même appareil (même userAgent)
+      if (userAgent) {
+        await UserSession.updateMany(
+          {
+            userId: decoded.userId,
+            userAgent,
+            revokedAt: null,
+          },
+          { $set: { revokedAt: new Date() } }
+        );
+      }
+
       await UserSession.create({
         userId: decoded.userId,
         sessionId,
@@ -128,15 +140,44 @@ export async function GET(request: NextRequest) {
     }
 
     if (decoded?.sessionId) {
-      const session = await UserSession.findOne({
-        userId: decoded.userId,
-        sessionId: decoded.sessionId,
-        revokedAt: null,
-        expiresAt: { $gt: new Date() },
-      });
+      const deviceType = getDeviceType(userAgent);
+      const deviceModel = getDeviceModel(userAgent);
+      const deviceName = getDeviceName(deviceType, userAgent);
+
+      const updateFields: Record<string, unknown> = {
+        lastSeenAt: new Date(),
+      };
+
+      if (ip) updateFields.ip = ip;
+      if (deviceModel) updateFields.deviceModel = deviceModel;
+      if (deviceName) updateFields.deviceName = deviceName;
+
+      const session = await UserSession.findOneAndUpdate(
+        {
+          userId: decoded.userId,
+          sessionId: decoded.sessionId,
+          revokedAt: null,
+          expiresAt: { $gt: new Date() },
+        },
+        { $set: updateFields },
+        { new: true }
+      );
 
       if (!session) {
         return NextResponse.json({ error: 'Session révoquée ou expirée' }, { status: 401 });
+      }
+
+      // Révoquer les autres sessions du même appareil (même userAgent) pour éviter les doublons
+      if (userAgent) {
+        await UserSession.updateMany(
+          {
+            userId: decoded.userId,
+            userAgent,
+            sessionId: { $ne: decoded.sessionId },
+            revokedAt: null,
+          },
+          { $set: { revokedAt: new Date() } }
+        );
       }
     }
 
@@ -177,6 +218,8 @@ export async function GET(request: NextRequest) {
         path: '/',
       });
     }
+
+    response.headers.set('Accept-CH', 'Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Mobile');
 
     return response;
   } catch (error) {

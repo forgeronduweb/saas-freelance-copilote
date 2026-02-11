@@ -19,7 +19,7 @@ const FAQ = () => {
     },
     {
       question: 'Y a-t-il un essai gratuit ?',
-      answer: 'Oui ✅. Essai gratuit de 14 jours sans engagement et sans carte bancaire. Testez toutes les fonctionnalités avant de vous décider.'
+      answer: 'Oui ✅. Vous pouvez commencer avec un plan gratuit (limité), puis passer à Pro quand vous en avez besoin.'
     },
     {
       question: 'Puis-je importer mes données existantes ?',

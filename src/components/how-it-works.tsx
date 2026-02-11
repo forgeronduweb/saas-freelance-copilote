@@ -5,8 +5,8 @@ const HowItWorks = () => {
     const steps = [
         {
             number: "01",
-            title: "Essai gratuit 14 jours",
-            description: "Créez votre compte et explorez toutes les fonctionnalités. Aucune carte bancaire requise.",
+            title: "Commencez gratuitement",
+            description: "Créez votre compte, utilisez le plan gratuit (limité) et passez à Pro quand vous en avez besoin.",
             icon: (
                 <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -47,7 +47,7 @@ const HowItWorks = () => {
     ];
 
     return (
-        <section id="how-it-works" className="py-16 bg-white">
+        <section id="demo" className="py-16 bg-white">
             <div className="px-4 md:px-16 lg:px-24 xl:px-32">
                 <div className="text-center mb-16">
                     <p className="text-base font-medium text-yellow-500 mb-2">Démarrage</p>
@@ -107,12 +107,12 @@ const HowItWorks = () => {
                             Rejoignez les freelances qui ont déjà récupéré 15h par semaine avec leur copilote business. Sans commission sur votre CA.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <button className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-full font-medium transition-colors">
-                                Commencer l'essai gratuit
-                            </button>
-                            <button className="border border-yellow-300 hover:bg-yellow-50 text-yellow-700 px-8 py-3 rounded-full font-medium transition-colors">
+                            <a href="/signup" className="bg-yellow-400 hover:bg-yellow-500 text-black px-8 py-3 rounded-full font-medium transition-colors">
+                                Commencer gratuitement
+                            </a>
+                            <a href="/contact" className="border border-yellow-300 hover:bg-yellow-50 text-yellow-700 px-8 py-3 rounded-full font-medium transition-colors">
                                 Planifier une démo
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -54,8 +54,19 @@ export async function GET(request: NextRequest) {
       if (!ua) return undefined;
       if (ua.includes('iPhone')) return 'iPhone';
       if (ua.includes('iPad')) return 'iPad';
-      const androidMatch = ua.match(/Android[^;]*;\s*([^;]+?)\s*Build\//i);
-      if (androidMatch?.[1]) return androidMatch[1].trim();
+      
+      // Format moderne: "Android 13; SM-S918B)" ou "Android 13; Pixel 6)"
+      const androidModern = ua.match(/Android\s*[\d.]*;\s*([^;)]+)/i);
+      if (androidModern?.[1]) {
+        const model = androidModern[1].trim();
+        // Éviter de retourner juste "K" ou des valeurs trop courtes
+        if (model.length > 2 && model.toLowerCase() !== 'linux') return model;
+      }
+      
+      // Format ancien: "Android 10; SM-G973F Build/QP1A"
+      const androidLegacy = ua.match(/Android[^;]*;\s*([^;]+?)\s*Build\//i);
+      if (androidLegacy?.[1]) return androidLegacy[1].trim();
+      
       const platform = normalizeCH(chPlatform);
       if (platform) return platform;
       return undefined;

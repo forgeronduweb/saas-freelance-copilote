@@ -45,6 +45,12 @@ async function verifyToken(token: string): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
+  // Ajouter Accept-CH pour demander les Client Hints (modèle appareil, plateforme)
+  const addClientHintsHeader = (response: NextResponse) => {
+    response.headers.set('Accept-CH', 'Sec-CH-UA-Model, Sec-CH-UA-Platform, Sec-CH-UA-Mobile, Sec-CH-UA-Full-Version-List');
+    return response;
+  };
+
   // Ignorer les fichiers statiques et API
   if (
     pathname.startsWith('/_next') ||
@@ -68,7 +74,7 @@ export async function middleware(request: NextRequest) {
       // Rediriger vers login si pas de token
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      return addClientHintsHeader(NextResponse.redirect(loginUrl))
     }
 
     // Valider le token JWT
@@ -82,14 +88,14 @@ export async function middleware(request: NextRequest) {
       
       const response = NextResponse.redirect(loginUrl)
       response.cookies.delete('auth-token')
-      return response
+      return addClientHintsHeader(response)
     }
 
-    return NextResponse.next()
+    return addClientHintsHeader(NextResponse.next())
   }
 
   // Route publique ou non protégée
-  return NextResponse.next()
+  return addClientHintsHeader(NextResponse.next())
 }
 
 export const config = {

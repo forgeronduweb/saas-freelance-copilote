@@ -15,9 +15,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, MoreHorizontal, Mail, Phone, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Plus, MoreHorizontal, Mail, Phone, Pencil, Trash2, Loader2, Building2, Tag } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
 
 type Client = {
   id: string;
@@ -279,83 +288,90 @@ export default function ClientsPage() {
         searchPlaceholder="Rechercher un client..."
         onRowClick={(client) => router.push(`/dashboard/clients/${client.id}`)}
         actionButton={
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <SheetTrigger asChild>
               <Button>
                 <Plus data-icon="inline-start" />
                 Nouveau client
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nouveau client</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md">
+              <SheetHeader>
+                <SheetTitle>Nouveau client</SheetTitle>
+                <SheetDescription>
                   Ajoutez un nouveau client à votre base.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={handleCreateClient}>
-                <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                  <div className="grid gap-2">
-                    <label htmlFor="name" className="text-sm">Nom *</label>
-                    <Input
-                      id="name"
-                      placeholder="Nom du client"
-                      value={newClientName}
-                      onChange={(e) => setNewClientName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="email" className="text-sm">Email</label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="email@exemple.com"
-                      value={newClientEmail}
-                      onChange={(e) => setNewClientEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="phone" className="text-sm">Téléphone</label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+225 XX XX XX XX"
-                      value={newClientPhone}
-                      onChange={(e) => setNewClientPhone(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="company" className="text-sm">Entreprise</label>
-                    <Input
-                      id="company"
-                      placeholder="Nom de l'entreprise"
-                      value={newClientCompany}
-                      onChange={(e) => setNewClientCompany(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="status" className="text-sm">Type de contact</label>
-                    <Select value={newClientStatus} onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir le type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Prospect">Prospect</SelectItem>
-                        <SelectItem value="Actif">Client</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="py-4 max-h-[70vh] overflow-y-auto">
+                  <div className="space-y-4">
+                    <div className="px-1">
+                      <Input
+                        id="name"
+                        placeholder="Nom du client"
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value)}
+                        required
+                        className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
+                      />
+                    </div>
+
+                    <div className="rounded-xl border bg-background divide-y">
+                      <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="email@exemple.com"
+                          value={newClientEmail}
+                          onChange={(e) => setNewClientEmail(e.target.value)}
+                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                        />
+                      </NotionPropertyRow>
+                      <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="+225 XX XX XX XX"
+                          value={newClientPhone}
+                          onChange={(e) => setNewClientPhone(e.target.value)}
+                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                        />
+                      </NotionPropertyRow>
+                      <NotionPropertyRow label="Entreprise" icon={<Building2 className="h-4 w-4" />}>
+                        <Input
+                          id="company"
+                          placeholder="Nom de l'entreprise"
+                          value={newClientCompany}
+                          onChange={(e) => setNewClientCompany(e.target.value)}
+                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                        />
+                      </NotionPropertyRow>
+                      <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                        <Select
+                          value={newClientStatus}
+                          onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
+                        >
+                          <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                            <SelectValue placeholder="Choisir le type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Prospect">Prospect</SelectItem>
+                            <SelectItem value="Actif">Client</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </NotionPropertyRow>
+                    </div>
                   </div>
                 </div>
-                <DialogFooter>
+                <SheetFooter>
                   <Button type="submit" disabled={creating}>
                     {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Ajouter le client
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
     </>

@@ -9,14 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { 
   Plus, 
   MoreHorizontal, 
@@ -331,20 +331,20 @@ export default function QuotesPage() {
         mobileVisibleColumnIds={["clientName", "status"]}
         mobileInlineColumnIds={["status"]}
         actionButton={
-          <Dialog>
-            <DialogTrigger asChild>
+          <Sheet>
+            <SheetTrigger asChild>
               <Button>
                 <Plus data-icon="inline-start" />
                 <span className="hidden sm:inline">Nouveau devis</span>
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nouveau devis</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md">
+              <SheetHeader>
+                <SheetTitle>Nouveau devis</SheetTitle>
+                <SheetDescription>
                   Créez un devis pour un prospect ou client.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <label htmlFor="client" className="text-sm">Client</label>
@@ -365,11 +365,11 @@ export default function QuotesPage() {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <SheetFooter>
                 <Button type="submit">Créer le devis</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         }
       />
     </div>

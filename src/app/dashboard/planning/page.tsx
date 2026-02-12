@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +14,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, Plus, MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Calendar, Clock, Plus, MoreHorizontal, Pencil, Tag, Trash2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -24,6 +33,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Event = {
   id: string;
@@ -282,76 +298,80 @@ export default function PlanningPage() {
         searchPlaceholder="Rechercher un événement..."
         onRowClick={(event) => router.push(`/dashboard/planning/${event.id}`)}
         actionButton={
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
+          <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <SheetTrigger asChild>
               <Button>
                 <Plus data-icon="inline-start" />
                 Nouvel événement
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nouvel événement</DialogTitle>
-                <DialogDescription>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md">
+              <SheetHeader>
+                <SheetTitle>Nouvel événement</SheetTitle>
+                <SheetDescription>
                   Créez un nouvel événement dans votre planning.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
               <form onSubmit={handleCreateEvent}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="title" className="text-sm">Titre *</label>
-                    <Input
-                      id="title"
-                      placeholder="Nom de l'événement"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <label htmlFor="date" className="text-sm">Date</label>
+                <div className="py-4">
+                  <div className="space-y-4">
+                    <div className="px-1">
                       <Input
-                        id="date"
-                        type="date"
-                        value={newDate}
-                        onChange={(e) => setNewDate(e.target.value)}
+                        id="title"
+                        placeholder="Nom de l'événement"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        required
+                        className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="time" className="text-sm">Heure</label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={newTime}
-                        onChange={(e) => setNewTime(e.target.value)}
-                      />
+
+                    <div className="rounded-xl border bg-background divide-y">
+                      <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={newDate}
+                          onChange={(e) => setNewDate(e.target.value)}
+                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                        />
+                      </NotionPropertyRow>
+
+                      <NotionPropertyRow label="Heure" icon={<Clock className="h-4 w-4" />}>
+                        <Input
+                          id="time"
+                          type="time"
+                          value={newTime}
+                          onChange={(e) => setNewTime(e.target.value)}
+                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                        />
+                      </NotionPropertyRow>
+
+                      <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                        <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>
+                          <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                            <SelectValue placeholder="Choisir" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Réunion">Réunion</SelectItem>
+                            <SelectItem value="Appel">Appel</SelectItem>
+                            <SelectItem value="Deadline">Deadline</SelectItem>
+                            <SelectItem value="Autre">Autre</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </NotionPropertyRow>
                     </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="type" className="text-sm">Type</label>
-                    <select
-                      id="type"
-                      value={newType}
-                      onChange={(e) => setNewType(e.target.value as Event["type"])}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="Réunion">Réunion</option>
-                      <option value="Appel">Appel</option>
-                      <option value="Deadline">Deadline</option>
-                      <option value="Autre">Autre</option>
-                    </select>
                   </div>
                 </div>
-                <DialogFooter>
+                <SheetFooter>
                   <Button type="submit" disabled={creating}>
                     {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Créer l'événement
                   </Button>
-                </DialogFooter>
+                </SheetFooter>
               </form>
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
         }
       />
     </>

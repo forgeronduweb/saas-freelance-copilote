@@ -16,8 +16,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Plus,
   MoreHorizontal,
@@ -654,21 +661,21 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
             mobileVisibleColumnIds={["client", "status"]}
             mobileInlineColumnIds={["status"]}
             actionButton={
-              <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-                <DialogTrigger asChild>
+              <Sheet open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+                <SheetTrigger asChild>
                   <Button>
                     <Plus data-icon="inline-start" />
                     <span className="hidden sm:inline">Nouvelle facture</span>
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Nouvelle facture</DialogTitle>
-                    <DialogDescription>Créez une facture avec les informations du client.</DialogDescription>
-                  </DialogHeader>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-2xl">
+                  <SheetHeader>
+                    <SheetTitle>Nouvelle facture</SheetTitle>
+                    <SheetDescription>Créez une facture avec les informations du client.</SheetDescription>
+                  </SheetHeader>
                   <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
+                </SheetContent>
+              </Sheet>
             }
           />
         </TabsContent>
@@ -683,21 +690,21 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
             mobileVisibleColumnIds={["clientName", "status"]}
             mobileInlineColumnIds={["status"]}
             actionButton={
-              <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
-                <DialogTrigger asChild>
+              <Sheet open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+                <SheetTrigger asChild>
                   <Button>
                     <Plus data-icon="inline-start" />
                     <span className="hidden sm:inline">Nouveau devis</span>
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Nouveau devis</DialogTitle>
-                    <DialogDescription>Créez un devis avec les informations du client.</DialogDescription>
-                  </DialogHeader>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-2xl">
+                  <SheetHeader>
+                    <SheetTitle>Nouveau devis</SheetTitle>
+                    <SheetDescription>Créez un devis avec les informations du client.</SheetDescription>
+                  </SheetHeader>
                   <QuoteForm onSubmit={handleCreateQuote} onCancel={() => setQuoteDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
+                </SheetContent>
+              </Sheet>
             }
           />
         </TabsContent>

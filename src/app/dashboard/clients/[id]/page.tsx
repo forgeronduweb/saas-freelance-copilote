@@ -8,16 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import InvoiceForm from "@/components/finance/InvoiceForm";
-import { ArrowLeft, Mail, Phone, Building2, Calendar, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, Calendar, Clock, FileText, Loader2, Tag } from "lucide-react";
 import { toast } from "sonner";
 
 type Client = {
@@ -296,72 +304,74 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Nouvelle facture</DialogTitle>
-            <DialogDescription>Créez une facture associée à ce client.</DialogDescription>
-          </DialogHeader>
+      <Sheet open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+        <SheetContent className="w-full sm:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle>Nouvelle facture</SheetTitle>
+            <SheetDescription>Créez une facture associée à ce client.</SheetDescription>
+          </SheetHeader>
           <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      <Dialog open={rdvDialogOpen} onOpenChange={setRdvDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Planifier un RDV</DialogTitle>
-            <DialogDescription>
+      <Sheet open={rdvDialogOpen} onOpenChange={setRdvDialogOpen}>
+        <SheetContent className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Planifier un RDV</SheetTitle>
+            <SheetDescription>
               Ajoutez un événement dans votre planning pour ce client. Une fois créé, vous pourrez modifier l’heure ou annuler le RDV depuis sa page de détail.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={handleCreateRdv}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="rdv-title" className="text-sm">Titre *</label>
-                <Input
-                  id="rdv-title"
-                  placeholder="Nom du RDV"
-                  value={rdvTitle}
-                  onChange={(e) => setRdvTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="rdv-date" className="text-sm">Date</label>
+            <div className="py-4">
+              <div className="space-y-4">
+                <div className="px-1">
                   <Input
-                    id="rdv-date"
-                    type="date"
-                    value={rdvDate}
-                    onChange={(e) => setRdvDate(e.target.value)}
+                    id="rdv-title"
+                    placeholder="Nom du RDV"
+                    value={rdvTitle}
+                    onChange={(e) => setRdvTitle(e.target.value)}
+                    required
+                    className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label htmlFor="rdv-time" className="text-sm">Heure</label>
-                  <Input
-                    id="rdv-time"
-                    type="time"
-                    value={rdvTime}
-                    onChange={(e) => setRdvTime(e.target.value)}
-                  />
+
+                <div className="rounded-xl border bg-background divide-y">
+                  <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
+                    <Input
+                      id="rdv-date"
+                      type="date"
+                      value={rdvDate}
+                      onChange={(e) => setRdvDate(e.target.value)}
+                      className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                    />
+                  </NotionPropertyRow>
+                  <NotionPropertyRow label="Heure" icon={<Clock className="h-4 w-4" />}>
+                    <Input
+                      id="rdv-time"
+                      type="time"
+                      value={rdvTime}
+                      onChange={(e) => setRdvTime(e.target.value)}
+                      className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                    />
+                  </NotionPropertyRow>
+                  <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                    <Select value={rdvType} onValueChange={(v) => setRdvType(v as typeof rdvType)}>
+                      <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                        <SelectValue placeholder="Choisir" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Réunion">Réunion</SelectItem>
+                        <SelectItem value="Appel">Appel</SelectItem>
+                        <SelectItem value="Deadline">Deadline</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </NotionPropertyRow>
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="rdv-type" className="text-sm">Type</label>
-                <select
-                  id="rdv-type"
-                  value={rdvType}
-                  onChange={(e) => setRdvType(e.target.value as typeof rdvType)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="Réunion">Réunion</option>
-                  <option value="Appel">Appel</option>
-                  <option value="Deadline">Deadline</option>
-                  <option value="Autre">Autre</option>
-                </select>
               </div>
             </div>
-            <DialogFooter>
+            <SheetFooter>
               <Button type="button" variant="outline" onClick={() => setRdvDialogOpen(false)}>
                 Annuler
               </Button>
@@ -369,10 +379,10 @@ export default function ClientDetailPage() {
                 {rdvCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Planifier
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

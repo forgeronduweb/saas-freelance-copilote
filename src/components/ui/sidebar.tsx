@@ -97,6 +97,16 @@ const SidebarProvider = React.forwardRef<
 
     const state = open ? "expanded" : "collapsed"
 
+    React.useEffect(() => {
+      if (typeof document === "undefined") return
+      const offset = isMobile ? "0px" : open ? SIDEBAR_WIDTH : "0px"
+      document.documentElement.style.setProperty("--app-sidebar-offset", offset)
+
+      return () => {
+        document.documentElement.style.removeProperty("--app-sidebar-offset")
+      }
+    }, [isMobile, open])
+
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         state,

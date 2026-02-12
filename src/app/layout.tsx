@@ -6,6 +6,7 @@ import AuthProvider from "@/components/providers/AuthProvider";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import AnalyticsTracker from "@/components/analytics-tracker";
 import { Toaster } from "@/components/ui/sonner";
+import { KeepAlive } from "@/components/keep-alive";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,6 +75,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
         <AnalyticsTracker />
+        <KeepAlive />
         <NextAuthProvider>
           <AuthProvider>{children}</AuthProvider>
         </NextAuthProvider>

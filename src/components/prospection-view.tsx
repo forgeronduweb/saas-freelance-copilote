@@ -16,6 +16,7 @@ import {
   Sparkles,
   Trash2,
   Plus,
+  Tag,
 } from "lucide-react";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
 import {
   Dialog,
   DialogContent,
@@ -34,8 +36,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -502,7 +512,7 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
 
   return (
     <div className="space-y-6">
-      <Dialog
+      <Sheet
         open={templateDialogOpen}
         onOpenChange={(open) => {
           setTemplateDialogOpen(open);
@@ -513,46 +523,43 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
           }
         }}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Nouveau modèle"}</DialogTitle>
-            <DialogDescription>Créez un script réutilisable pour vos emails et relances.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <label htmlFor="tpl-title" className="text-sm">
-                Titre
-              </label>
-              <Input
-                id="tpl-title"
-                value={templateTitle}
-                onChange={(e) => setTemplateTitle(e.target.value)}
-                placeholder="Ex: Relance après devis"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="tpl-content" className="text-sm">
-                Contenu
-              </label>
-              <Textarea
-                id="tpl-content"
-                value={templateContent}
-                onChange={(e) => setTemplateContent(e.target.value)}
-                placeholder="Écrivez votre script..."
-                className="min-h-[180px]"
-              />
+        <SheetContent className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>{editingTemplate ? "Modifier le modèle" : "Nouveau modèle"}</SheetTitle>
+            <SheetDescription>Créez un script réutilisable pour vos emails et relances.</SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="px-1">
+                <Input
+                  id="tpl-title"
+                  value={templateTitle}
+                  onChange={(e) => setTemplateTitle(e.target.value)}
+                  placeholder="Titre du modèle"
+                  className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Textarea
+                  id="tpl-content"
+                  value={templateContent}
+                  onChange={(e) => setTemplateContent(e.target.value)}
+                  placeholder="Écrivez votre script..."
+                  className="min-h-[180px] px-0 border-0 bg-transparent focus-visible:ring-0 resize-none"
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter>
+          <SheetFooter>
             <Button variant="outline" type="button" onClick={() => setTemplateDialogOpen(false)}>
               Annuler
             </Button>
             <Button type="button" onClick={handleSaveTemplate}>
               Enregistrer
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog
         open={deleteConfirmOpen}
@@ -681,96 +688,88 @@ export function ProspectionView({ activeTab }: { activeTab: ProspectionTab }) {
             mobileVisibleColumnIds={["name", "status"]}
             mobileInlineColumnIds={["status"]}
             actionButton={
-              <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogTrigger asChild>
+              <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <SheetTrigger asChild>
                   <Button>
                     <Plus data-icon="inline-start" />
                     <span className="hidden sm:inline">Nouveau client</span>
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Nouveau client</DialogTitle>
-                    <DialogDescription>Ajoutez un nouveau client à votre base.</DialogDescription>
-                  </DialogHeader>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md">
+                  <SheetHeader>
+                    <SheetTitle>Nouveau client</SheetTitle>
+                    <SheetDescription>Ajoutez un nouveau client à votre base.</SheetDescription>
+                  </SheetHeader>
                   <form onSubmit={handleCreateClient}>
-                    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                      <div className="grid gap-2">
-                        <label htmlFor="name" className="text-sm">
-                          Nom
-                        </label>
-                        <Input
-                          id="name"
-                          placeholder="Nom du client"
-                          value={newClientName}
-                          onChange={(e) => setNewClientName(e.target.value)}
-                          required
-                        />
-                      </div>
+                    <div className="py-4 max-h-[60vh] overflow-y-auto">
+                      <div className="space-y-4">
+                        <div className="px-1">
+                          <Input
+                            id="name"
+                            placeholder="Nom du client"
+                            value={newClientName}
+                            onChange={(e) => setNewClientName(e.target.value)}
+                            required
+                            className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
+                          />
+                        </div>
 
-                      <div className="grid gap-2">
-                        <label htmlFor="status" className="text-sm">
-                          Type de contact
-                        </label>
-                        <Select
-                          value={newClientStatus}
-                          onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisir le type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Prospect">Prospect</SelectItem>
-                            <SelectItem value="Actif">Client</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid gap-2">
-                        <label htmlFor="email" className="text-sm">
-                          Email
-                        </label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="email@exemple.com"
-                          value={newClientEmail}
-                          onChange={(e) => setNewClientEmail(e.target.value)}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <label htmlFor="phone" className="text-sm">
-                          Téléphone
-                        </label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="+33 6 00 00 00 00"
-                          value={newClientPhone}
-                          onChange={(e) => setNewClientPhone(e.target.value)}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <label htmlFor="company" className="text-sm">
-                          Entreprise
-                        </label>
-                        <Input
-                          id="company"
-                          placeholder="Nom de l'entreprise"
-                          value={newClientCompany}
-                          onChange={(e) => setNewClientCompany(e.target.value)}
-                        />
+                        <div className="rounded-xl border bg-background divide-y">
+                          <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                            <Select
+                              value={newClientStatus}
+                              onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
+                            >
+                              <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                                <SelectValue placeholder="Choisir le type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Prospect">Prospect</SelectItem>
+                                <SelectItem value="Actif">Client</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="email@exemple.com"
+                              value={newClientEmail}
+                              onChange={(e) => setNewClientEmail(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              placeholder="+33 6 00 00 00 00"
+                              value={newClientPhone}
+                              onChange={(e) => setNewClientPhone(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Entreprise" icon={<Building2 className="h-4 w-4" />}>
+                            <Input
+                              id="company"
+                              placeholder="Nom de l'entreprise"
+                              value={newClientCompany}
+                              onChange={(e) => setNewClientCompany(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                        </div>
                       </div>
                     </div>
-                    <DialogFooter>
+                    <SheetFooter>
                       <Button type="submit" disabled={creating}>
                         {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                         Ajouter le client
                       </Button>
-                    </DialogFooter>
+                    </SheetFooter>
                   </form>
-                </DialogContent>
-              </Dialog>
+                </SheetContent>
+              </Sheet>
             }
           />
         </TabsContent>

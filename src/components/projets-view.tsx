@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Briefcase,
+  ChevronDown,
   Clock,
   FileText,
+  Flag,
   Loader2,
   Play,
   Square,
@@ -26,13 +28,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -41,14 +36,26 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
 
 type Mission = {
   id: string;
@@ -257,10 +264,24 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
   const [newStatus, setNewStatus] = useState<Event["status"]>("Planifié");
   const [newProjectType, setNewProjectType] = useState<string>("UX/UI");
   const [newCollaboratorIds, setNewCollaboratorIds] = useState<string[]>([]);
+  const [collaboratorSearch, setCollaboratorSearch] = useState("");
+  const [collaboratorsMenuOpen, setCollaboratorsMenuOpen] = useState(false);
   const [newAttachments, setNewAttachments] = useState<AttachmentMeta[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  const selectedCollaborators = useMemo(() => {
+    if (newCollaboratorIds.length === 0) return [];
+    const selectedSet = new Set(newCollaboratorIds);
+    return collaboratorsSeed.filter((c) => selectedSet.has(c.id));
+  }, [newCollaboratorIds]);
+
+  const filteredCollaborators = useMemo(() => {
+    const q = collaboratorSearch.trim().toLowerCase();
+    if (!q) return collaboratorsSeed;
+    return collaboratorsSeed.filter((c) => c.name.toLowerCase().includes(q));
+  }, [collaboratorSearch]);
 
   const persistEvents = (next: Event[]) => {
     try {
@@ -714,105 +735,102 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
               <p className="text-sm text-muted-foreground">Crée et suis tes tâches de production.</p>
             </div>
 
-            <Dialog
+            <Sheet
               open={missionCreateOpen}
               onOpenChange={(open) => {
                 if (creatingMission) return;
                 setMissionCreateOpen(open);
               }}
             >
-              <DialogTrigger asChild>
+              <SheetTrigger asChild>
                 <Button>
                   <Plus data-icon="inline-start" />
                   Nouvelle mission
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Nouvelle mission</DialogTitle>
-                  <DialogDescription>Ajoute une tâche de production à suivre dans ton board.</DialogDescription>
-                </DialogHeader>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle>Nouvelle mission</SheetTitle>
+                  <SheetDescription>Ajoute une tâche de production à suivre dans ton board.</SheetDescription>
+                </SheetHeader>
 
-                <form onSubmit={handleCreateMission} className="space-y-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="mission-title" className="text-sm">
-                      Titre *
-                    </label>
+                <form onSubmit={handleCreateMission} className="mt-4 space-y-4">
+                  <div className="space-y-2">
                     <Input
                       id="mission-title"
                       value={newMissionTitle}
                       onChange={(e) => setNewMissionTitle(e.target.value)}
-                      placeholder="Ex: Landing page, Intégration paiement…"
+                      placeholder="Nom de la mission"
                       required
+                      className="h-12 px-0 text-lg font-semibold border-0 bg-transparent focus-visible:ring-0"
                     />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="mission-client" className="text-sm">
-                      Client *
-                    </label>
-                    <Input
-                      id="mission-client"
-                      value={newMissionClient}
-                      onChange={(e) => setNewMissionClient(e.target.value)}
-                      placeholder="Ex: ACME Corp"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="mission-description" className="text-sm">
-                      Description
-                    </label>
                     <Textarea
                       id="mission-description"
                       value={newMissionDescription}
                       onChange={(e) => setNewMissionDescription(e.target.value)}
-                      placeholder="Contexte, livrables, détails…"
+                      placeholder="Ajouter une description…"
+                      className="min-h-[96px] px-0 border-0 bg-transparent focus-visible:ring-0 resize-none"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <label htmlFor="mission-priority" className="text-sm">
-                        Priorité
-                      </label>
-                      <select
-                        id="mission-priority"
-                        value={newMissionPriority}
-                        onChange={(e) =>
-                          setNewMissionPriority(e.target.value as "Basse" | "Moyenne" | "Haute")
-                        }
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        <option value="Basse">Basse</option>
-                        <option value="Moyenne">Moyenne</option>
-                        <option value="Haute">Haute</option>
-                      </select>
-                    </div>
+                  <div className="rounded-xl border bg-background divide-y">
+                    <NotionPropertyRow label="Client" icon={<Briefcase className="h-4 w-4" />}>
+                      <Input
+                        id="mission-client"
+                        value={newMissionClient}
+                        onChange={(e) => setNewMissionClient(e.target.value)}
+                        placeholder="Ex: ACME Corp"
+                        required
+                        className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                      />
+                    </NotionPropertyRow>
+
+                    <NotionPropertyRow label="Priorité" icon={<Flag className="h-4 w-4" />}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-sm hover:bg-accent/40"
+                          >
+                            <span>{newMissionPriority}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-44">
+                          <DropdownMenuRadioGroup
+                            value={newMissionPriority}
+                            onValueChange={(v) =>
+                              setNewMissionPriority(v as "Basse" | "Moyenne" | "Haute")
+                            }
+                          >
+                            <DropdownMenuRadioItem value="Basse">Basse</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="Moyenne">Moyenne</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="Haute">Haute</DropdownMenuRadioItem>
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </NotionPropertyRow>
+
+                    <NotionPropertyRow label="Échéance" icon={<Calendar className="h-4 w-4" />}>
+                      <Input
+                        id="mission-dueDate"
+                        type="date"
+                        value={newMissionDueDate}
+                        onChange={(e) => setNewMissionDueDate(e.target.value)}
+                        className="h-8 w-full border-0 bg-transparent px-2 focus-visible:ring-0"
+                      />
+                    </NotionPropertyRow>
                   </div>
 
-                  <div className="grid gap-2">
-                    <label htmlFor="mission-dueDate" className="text-sm">
-                      Échéance
-                    </label>
-                    <Input
-                      id="mission-dueDate"
-                      type="date"
-                      value={newMissionDueDate}
-                      onChange={(e) => setNewMissionDueDate(e.target.value)}
-                    />
-                  </div>
-
-                  <DialogFooter>
+                  <SheetFooter>
                     <Button type="submit" disabled={creatingMission}>
                       {creatingMission ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                       Créer la mission
                     </Button>
-                  </DialogFooter>
+                  </SheetFooter>
                 </form>
-              </DialogContent>
-            </Dialog>
+              </SheetContent>
+            </Sheet>
           </div>
 
           <Dialog
@@ -1086,192 +1104,261 @@ export function ProjetsView({ activeTab }: { activeTab: ProjetsTab }) {
                 Glissez-déposez bientôt. Pour l’instant, vue Kanban.
               </p>
             </div>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
+            <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+              <SheetTrigger asChild>
                 <Button>
                   <Plus data-icon="inline-start" />
                   Nouvel événement
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl h-[90vh] overflow-hidden flex flex-col">
-                <DialogHeader className="pb-2 shrink-0">
-                  <DialogTitle>Nouvel événement</DialogTitle>
-                  <DialogDescription>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-2xl overflow-hidden flex flex-col">
+                <SheetHeader className="pb-2 shrink-0">
+                  <SheetTitle>Nouvel événement</SheetTitle>
+                  <SheetDescription>
                     Créez un nouvel événement et partagez-le avec vos collaborateurs.
-                  </DialogDescription>
-                </DialogHeader>
+                  </SheetDescription>
+                </SheetHeader>
                 <form onSubmit={handleCreateEvent} className="flex flex-col flex-1 min-h-0 gap-4">
                   <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
-                    <div className="grid gap-4 pb-2">
-                      <div className="grid gap-2">
-                        <label htmlFor="title" className="text-sm">
-                          Titre
-                        </label>
+                    <div className="space-y-4 pb-2">
+                      <div className="space-y-2">
                         <Input
                           id="title"
                           placeholder="Nom de l'événement"
                           value={newTitle}
                           onChange={(e) => setNewTitle(e.target.value)}
+                          className="h-12 px-0 text-lg font-semibold border-0 bg-transparent focus-visible:ring-0"
                         />
-                      </div>
-
-                      <div className="grid gap-2">
-                        <label htmlFor="description" className="text-sm">
-                          Description
-                        </label>
                         <Textarea
                           id="description"
-                          className="min-h-[96px]"
-                          placeholder="Décrivez la tâche / l’événement..."
+                          className="min-h-[96px] px-0 border-0 bg-transparent focus-visible:ring-0 resize-none"
+                          placeholder="Ajouter une description…"
                           value={newDescription}
                           onChange={(e) => setNewDescription(e.target.value)}
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                          <label htmlFor="date" className="text-sm">
-                            Date
-                          </label>
-                          <Input
-                            id="date"
-                            type="date"
-                            value={newDate}
-                            onChange={(e) => setNewDate(e.target.value)}
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <label htmlFor="time" className="text-sm">
-                            Heure
-                          </label>
-                          <Input
-                            id="time"
-                            type="time"
-                            value={newTime}
-                            onChange={(e) => setNewTime(e.target.value)}
-                          />
-                        </div>
-                      </div>
+                      <div className="rounded-xl border bg-background divide-y">
+                        <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="date"
+                              type="date"
+                              value={newDate}
+                              onChange={(e) => setNewDate(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                            <Input
+                              id="time"
+                              type="time"
+                              value={newTime}
+                              onChange={(e) => setNewTime(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </div>
+                        </NotionPropertyRow>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                          <label className="text-sm">Type</label>
-                          <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Réunion">Réunion</SelectItem>
-                              <SelectItem value="Appel">Appel</SelectItem>
-                              <SelectItem value="Deadline">Deadline</SelectItem>
-                              <SelectItem value="Autre">Autre</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid gap-2">
-                          <label className="text-sm">Statut</label>
-                          <Select value={newStatus} onValueChange={(v) => setNewStatus(v as Event["status"])}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choisir" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Planifié">Planifié</SelectItem>
-                              <SelectItem value="Confirmé">Confirmé</SelectItem>
-                              <SelectItem value="Terminé">Terminé</SelectItem>
-                              <SelectItem value="Annulé">Annulé</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                        <NotionPropertyRow label="Type" icon={<FileText className="h-4 w-4" />}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-sm hover:bg-accent/40"
+                              >
+                                <span>{newType}</span>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-52">
+                              <DropdownMenuRadioGroup
+                                value={newType}
+                                onValueChange={(v) => setNewType(v as Event["type"])}
+                              >
+                                <DropdownMenuRadioItem value="Réunion">Réunion</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Appel">Appel</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Deadline">Deadline</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Autre">Autre</DropdownMenuRadioItem>
+                              </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </NotionPropertyRow>
 
-                      <div className="grid gap-2">
-                        <label className="text-sm">Type de projet</label>
-                        <Select value={newProjectType} onValueChange={(v) => setNewProjectType(v)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisir" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {projectTypes.map((t) => (
-                              <SelectItem key={t} value={t}>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                        <NotionPropertyRow label="Statut" icon={<Badge variant="outline">S</Badge>}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-sm hover:bg-accent/40"
+                              >
+                                <span>{newStatus}</span>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-52">
+                              <DropdownMenuRadioGroup
+                                value={newStatus}
+                                onValueChange={(v) => setNewStatus(v as Event["status"])}
+                              >
+                                <DropdownMenuRadioItem value="Planifié">Planifié</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Confirmé">Confirmé</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Terminé">Terminé</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="Annulé">Annulé</DropdownMenuRadioItem>
+                              </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </NotionPropertyRow>
 
-                      <div className="grid gap-2">
-                        <p className="text-sm">Collaborateurs</p>
-                        <div className="rounded-lg border p-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-                            {collaboratorsSeed.map((c) => {
-                              const checked = newCollaboratorIds.includes(c.id);
-                              return (
-                                <label
-                                  key={c.id}
-                                  className="flex items-center justify-between gap-3 rounded-md px-2 py-2 hover:bg-accent/30"
+                        <NotionPropertyRow label="Projet" icon={<Briefcase className="h-4 w-4" />}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-sm hover:bg-accent/40"
+                              >
+                                <span className="truncate">{newProjectType}</span>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-56">
+                              <DropdownMenuRadioGroup
+                                value={newProjectType}
+                                onValueChange={(v) => setNewProjectType(v)}
+                              >
+                                {projectTypes.map((t) => (
+                                  <DropdownMenuRadioItem key={t} value={t}>
+                                    {t}
+                                  </DropdownMenuRadioItem>
+                                ))}
+                              </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </NotionPropertyRow>
+
+                        <NotionPropertyRow label="Collaborateurs" icon={<Plus className="h-4 w-4" />}>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {selectedCollaborators.length === 0 ? (
+                              <span className="text-sm text-muted-foreground">Aucun</span>
+                            ) : (
+                              <AvatarStack collaborators={selectedCollaborators} />
+                            )}
+
+                            <DropdownMenu
+                              open={collaboratorsMenuOpen}
+                              onOpenChange={(open) => {
+                                setCollaboratorsMenuOpen(open);
+                                if (!open) setCollaboratorSearch("");
+                              }}
+                            >
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="h-8 w-8 rounded-full border bg-background flex items-center justify-center hover:bg-accent/30"
+                                  aria-label="Ajouter des collaborateurs"
                                 >
-                                  <div className="flex items-center gap-2">
-                                    <Avatar className="h-7 w-7">
-                                      {c.avatarUrl ? <AvatarImage src={c.avatarUrl} alt={c.name} /> : null}
-                                      <AvatarFallback className="text-[10px]">{getInitials(c.name)}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-sm">{c.name}</span>
-                                  </div>
-                                  <Checkbox
-                                    checked={checked}
-                                    onCheckedChange={(v) => {
-                                      const next = !!v;
-                                      setNewCollaboratorIds((prev) =>
-                                        next ? Array.from(new Set([...prev, c.id])) : prev.filter((id) => id !== c.id)
-                                      );
-                                    }}
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                collisionPadding={12}
+                                className="w-[calc(100vw-2rem)] sm:w-80 p-0"
+                                onCloseAutoFocus={(e) => e.preventDefault()}
+                              >
+                                <div className="p-2 border-b" onKeyDown={(e) => e.stopPropagation()}>
+                                  <Input
+                                    id="collaborators-search"
+                                    value={collaboratorSearch}
+                                    onChange={(e) => setCollaboratorSearch(e.target.value)}
+                                    placeholder="Rechercher un collaborateur..."
+                                    autoFocus
                                   />
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2">
-                        <label htmlFor="files" className="text-sm">
-                          Pièces jointes
-                        </label>
-                        <Input
-                          id="files"
-                          type="file"
-                          multiple
-                          onChange={(e) => {
-                            const files = Array.from(e.target.files || []);
-                            setNewAttachments(files.map((f) => ({ name: f.name, size: f.size, type: f.type })));
-                          }}
-                        />
-                        {newAttachments.length > 0 ? (
-                          <div className="rounded-lg border p-3">
-                            <p className="text-xs text-muted-foreground">{newAttachments.length} fichier(s) sélectionné(s)</p>
-                            <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pr-1">
-                              {newAttachments.map((f) => (
-                                <div key={f.name} className="flex items-center justify-between text-sm">
-                                  <span className="truncate">{f.name}</span>
-                                  <span className="text-xs text-muted-foreground">{Math.round(f.size / 1024)} Ko</span>
                                 </div>
-                              ))}
-                            </div>
+
+                                <div className="max-h-64 overflow-y-auto p-1">
+                                  {filteredCollaborators.length === 0 ? (
+                                    <p className="px-2 py-6 text-sm text-muted-foreground text-center">
+                                      Aucun résultat.
+                                    </p>
+                                  ) : (
+                                    filteredCollaborators.map((c) => {
+                                      const checked = newCollaboratorIds.includes(c.id);
+                                      return (
+                                        <DropdownMenuCheckboxItem
+                                          key={c.id}
+                                          checked={checked}
+                                          onCheckedChange={(v) => {
+                                            const next = v === true;
+                                            setNewCollaboratorIds((prev) =>
+                                              next
+                                                ? Array.from(new Set([...prev, c.id]))
+                                                : prev.filter((id) => id !== c.id)
+                                            );
+                                          }}
+                                          onSelect={(e) => e.preventDefault()}
+                                          className="gap-2"
+                                        >
+                                          <Avatar className="h-6 w-6">
+                                            {c.avatarUrl ? (
+                                              <AvatarImage src={c.avatarUrl} alt={c.name} />
+                                            ) : null}
+                                            <AvatarFallback className="text-[10px]">
+                                              {getInitials(c.name)}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <span className="truncate">{c.name}</span>
+                                        </DropdownMenuCheckboxItem>
+                                      );
+                                    })
+                                  )}
+                                </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                        ) : null}
+                        </NotionPropertyRow>
+
+                        <NotionPropertyRow label="Pièces jointes" icon={<FileText className="h-4 w-4" />}>
+                          <div className="space-y-2">
+                            <Input
+                              id="files"
+                              type="file"
+                              multiple
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                setNewAttachments(files.map((f) => ({ name: f.name, size: f.size, type: f.type })));
+                              }}
+                              className="h-8"
+                            />
+                            {newAttachments.length > 0 ? (
+                              <div className="rounded-lg border p-3">
+                                <p className="text-xs text-muted-foreground">
+                                  {newAttachments.length} fichier(s) sélectionné(s)
+                                </p>
+                                <div className="mt-2 space-y-1 max-h-28 overflow-y-auto pr-1">
+                                  {newAttachments.map((f) => (
+                                    <div key={f.name} className="flex items-center justify-between text-sm">
+                                      <span className="truncate">{f.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {Math.round(f.size / 1024)} Ko
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </NotionPropertyRow>
                       </div>
                     </div>
                   </div>
 
                   <div className="pt-3 border-t bg-white shrink-0">
-                    <DialogFooter className="mt-0">
+                    <SheetFooter className="mt-0">
                       <Button type="submit">Créer l’événement</Button>
-                    </DialogFooter>
+                    </SheetFooter>
                   </div>
                 </form>
-              </DialogContent>
-            </Dialog>
+              </SheetContent>
+            </Sheet>
 
             <Dialog
               open={deleteConfirmOpen}

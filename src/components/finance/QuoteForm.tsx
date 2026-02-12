@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { NotionPropertyRow } from "@/components/ui/notion-property-row";
 import {
   Select,
   SelectContent,
@@ -13,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Building2, Plus } from "lucide-react";
+import { Building2, Calendar, Mail, Phone, Plus, Timer } from "lucide-react";
 
 type Prestataire = {
   nom: string;
@@ -219,129 +220,116 @@ export default function QuoteForm({ onSubmit, onCancel }: QuoteFormProps) {
       </Card> */}
 
       {/* Client (saisie manuelle) */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            Client
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Choisir un contact existant</label>
-            <Select value={selectedClientId} onValueChange={handleSelectClient} disabled={clientsLoading}>
-              <SelectTrigger>
-                <SelectValue placeholder={clientsLoading ? "Chargement..." : "Sélectionner un contact"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual">Saisie manuelle</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.company?.trim() ? `${c.company} — ${c.name}` : c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="rounded-xl border bg-background divide-y">
+        <NotionPropertyRow label="Contact" icon={<Building2 className="h-4 w-4" />}>
+          <Select value={selectedClientId} onValueChange={handleSelectClient} disabled={clientsLoading}>
+            <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+              <SelectValue placeholder={clientsLoading ? "Chargement..." : "Sélectionner un contact"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="manual">Saisie manuelle</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.company?.trim() ? `${c.company} — ${c.name}` : c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </NotionPropertyRow>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Nom / Entreprise *</label>
-            <Input
-              value={formData.clientNom}
-              onChange={(e) => handleChange("clientNom", e.target.value)}
-              placeholder="Nom du client ou entreprise"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Téléphone *</label>
-              <Input
-                value={formData.clientTelephone}
-                onChange={(e) => handleChange("clientTelephone", e.target.value)}
-                placeholder="+225 XX XX XX XX"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                value={formData.clientEmail}
-                onChange={(e) => handleChange("clientEmail", e.target.value)}
-                placeholder="email@exemple.com"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <NotionPropertyRow label="Nom" icon={<Building2 className="h-4 w-4" />}>
+          <Input
+            value={formData.clientNom}
+            onChange={(e) => handleChange("clientNom", e.target.value)}
+            placeholder="Nom du client ou entreprise"
+            required
+            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+          />
+        </NotionPropertyRow>
+
+        <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
+          <Input
+            value={formData.clientTelephone}
+            onChange={(e) => handleChange("clientTelephone", e.target.value)}
+            placeholder="+225 XX XX XX XX"
+            required
+            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+          />
+        </NotionPropertyRow>
+
+        <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+          <Input
+            type="email"
+            value={formData.clientEmail}
+            onChange={(e) => handleChange("clientEmail", e.target.value)}
+            placeholder="email@exemple.com"
+            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+          />
+        </NotionPropertyRow>
+      </div>
 
       <Separator />
 
       {/* Détails du devis */}
       <div className="space-y-4">
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Objet du devis *</label>
+        <div className="space-y-2">
           <Input
             value={formData.objet}
             onChange={(e) => handleChange("objet", e.target.value)}
-            placeholder="Ex: Création site web vitrine"
+            placeholder="Objet du devis"
             required
+            className="h-12 px-0 text-lg font-semibold border-0 bg-transparent focus-visible:ring-0"
           />
-        </div>
-
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Description détaillée *</label>
           <Textarea
             value={formData.description}
             onChange={(e) => handleChange("description", e.target.value)}
-            placeholder="Décrivez les services proposés..."
+            placeholder="Ajouter une description…"
             rows={4}
             required
+            className="min-h-[96px] px-0 border-0 bg-transparent focus-visible:ring-0 resize-none"
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Délai de réalisation</label>
+        <div className="rounded-xl border bg-background divide-y">
+          <NotionPropertyRow label="Délai" icon={<Timer className="h-4 w-4" />}>
             <Input
               value={formData.delaiRealisation}
               onChange={(e) => handleChange("delaiRealisation", e.target.value)}
               placeholder="Ex: 2 semaines"
+              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Validité (jours)</label>
+          </NotionPropertyRow>
+
+          <NotionPropertyRow label="Validité" icon={<Calendar className="h-4 w-4" />}>
             <Input
               type="number"
               value={formData.dureeValidite}
               onChange={(e) => handleChange("dureeValidite", parseInt(e.target.value) || 30)}
               min={1}
+              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
             />
-          </div>
-        </div>
+          </NotionPropertyRow>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Montant total (FCFA) *</label>
+          <NotionPropertyRow label="Total" icon={<Building2 className="h-4 w-4" />}>
             <Input
               type="number"
               value={computedTotal}
               placeholder="0"
               disabled
-              className="bg-muted"
+              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
               required
             />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Acompte (FCFA)</label>
+          </NotionPropertyRow>
+
+          <NotionPropertyRow label="Acompte" icon={<Building2 className="h-4 w-4" />}>
             <Input
               type="number"
               value={formData.acompte || ""}
               onChange={(e) => handleChange("acompte", parseInt(e.target.value) || 0)}
               placeholder="0"
+              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
             />
-          </div>
+          </NotionPropertyRow>
         </div>
 
         <Card>

@@ -10,6 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Kbd } from "@/components/ui/kbd";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -85,8 +93,36 @@ export default function DashboardLayout({
     (pathname.startsWith("/dashboard/clients/") ? "CRM" : "Dashboard");
 
   const [commandOpen, setCommandOpen] = useState(false);
+  const [welcomeGuideOpen, setWelcomeGuideOpen] = useState(false);
 
   const tickerRef = useRef<number | null>(null);
+
+  const markWelcomeGuideSeen = () => {
+    if (!user?.id) return;
+    try {
+      localStorage.setItem(`welcomeGuideSeen:${user.id}`, "1");
+    } catch {
+      // ignore
+    }
+  };
+
+  const closeWelcomeGuide = () => {
+    markWelcomeGuideSeen();
+    setWelcomeGuideOpen(false);
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+    if (!user.onboardingCompleted) return;
+    try {
+      const seen = localStorage.getItem(`welcomeGuideSeen:${user.id}`);
+      if (seen !== "1") {
+        setWelcomeGuideOpen(true);
+      }
+    } catch {
+      setWelcomeGuideOpen(true);
+    }
+  }, [user?.id, user?.onboardingCompleted]);
 
   useEffect(() => {
     const readState = (): null | {
@@ -319,6 +355,67 @@ export default function DashboardLayout({
           {children}
         </main>
       </SidebarInset>
+
+      <Dialog
+        open={welcomeGuideOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            markWelcomeGuideSeen();
+          }
+          setWelcomeGuideOpen(open);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Guide rapide — comment utiliser l’app</DialogTitle>
+            <DialogDescription>
+              L’objectif est simple : faire avancer tes prospects, sécuriser tes ventes, et garder ton exécution sous contrôle.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 text-sm">
+            <div className="space-y-2">
+              <div className="font-medium">La boucle essentielle</div>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li>Prospection : ajoute un contact et une prochaine action.</li>
+                <li>Pipeline : fais avancer le statut jusqu’à devis envoyé.</li>
+                <li>Devis : crée et envoie ton devis.</li>
+                <li>Projet & planning : exécute avec des jalons clairs.</li>
+                <li>Facture : envoie et suis le paiement.</li>
+              </ol>
+            </div>
+
+            <div className="space-y-2">
+              <div className="font-medium">Ce que tu dois faire aujourd’hui (10 minutes)</div>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li>Ajoute 3 prospects dans le CRM.</li>
+                <li>Planifie 1 action de relance (date + note).</li>
+                <li>Crée ton 1er devis si un prospect est chaud.</li>
+              </ol>
+            </div>
+
+            <div className="space-y-2">
+              <div className="font-medium">Raccourcis utiles</div>
+              <div className="text-muted-foreground">
+                Recherche rapide : Ctrl + K
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                closeWelcomeGuide();
+                router.push("/dashboard/prospection/pipeline");
+              }}
+            >
+              Ouvrir le pipeline
+            </Button>
+            <Button onClick={closeWelcomeGuide}>Compris</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandInput placeholder="Rechercher..." />

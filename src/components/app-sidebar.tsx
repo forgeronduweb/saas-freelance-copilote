@@ -33,6 +33,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export const menuSections = [
@@ -76,6 +77,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname()
+  const { isMobile } = useSidebar()
 
   const isProspectionArea =
     pathname === "/dashboard/prospection" ||
@@ -154,20 +156,20 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const [isFinanceMenuOpen, setIsFinanceMenuOpen] = React.useState(isFinanceArea)
 
   React.useEffect(() => {
-    if (isProspectionArea) setIsProspectionMenuOpen(true)
-  }, [isProspectionArea])
+    if (isMobile && isProspectionArea) setIsProspectionMenuOpen(true)
+  }, [isMobile, isProspectionArea])
 
   React.useEffect(() => {
-    if (isAnalysesArea) setIsAnalysesMenuOpen(true)
-  }, [isAnalysesArea])
+    if (isMobile && isAnalysesArea) setIsAnalysesMenuOpen(true)
+  }, [isMobile, isAnalysesArea])
 
   React.useEffect(() => {
-    if (isProjetsArea) setIsProjetsMenuOpen(true)
-  }, [isProjetsArea])
+    if (isMobile && isProjetsArea) setIsProjetsMenuOpen(true)
+  }, [isMobile, isProjetsArea])
 
   React.useEffect(() => {
-    if (isFinanceArea) setIsFinanceMenuOpen(true)
-  }, [isFinanceArea])
+    if (isMobile && isFinanceArea) setIsFinanceMenuOpen(true)
+  }, [isMobile, isFinanceArea])
 
   const handleLogout = async () => {
     try {
@@ -189,7 +191,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="pt-5">
+      <SidebarContent className="pt-5 overflow-visible">
         <div className="flex flex-col gap-4">
           {menuSections.map((section) => (
             <SidebarGroup key={section.label}>
@@ -197,7 +199,9 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <SidebarGroupContent className="px-2">
                 <SidebarMenu className="gap-1">
                   {section.items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem
+                      key={item.title}
+                    >
                       {item.url === "/dashboard/prospection" ? (
                         <>
                           <SidebarMenuButton asChild size="default" isActive={isProspectionArea}>
@@ -214,6 +218,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           <SidebarMenuAction
                             type="button"
                             aria-label="Toggle Prospection menu"
+                            showOnHover={!isMobile}
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -228,7 +233,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                             />
                           </SidebarMenuAction>
 
-                          {isProspectionMenuOpen && (
+                          {(isMobile || isProspectionMenuOpen) && (
                             <SidebarMenuSub>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
@@ -267,6 +272,42 @@ export function AppSidebar({ user }: AppSidebarProps) {
                               </SidebarMenuSubItem>
                             </SidebarMenuSub>
                           )}
+
+                          {!isMobile && !isProspectionMenuOpen && (
+                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                                <div className="flex flex-col gap-1">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProspectionArea && prospectionActiveTab === "pipeline"}
+                                  >
+                                    <Link href="/dashboard/prospection/pipeline">Pipeline</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={
+                                      (isProspectionArea && prospectionActiveTab === "contacts") ||
+                                      pathname.startsWith("/dashboard/clients")
+                                    }
+                                  >
+                                    <Link href="/dashboard/prospection/contacts">Contacts</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProspectionArea && prospectionActiveTab === "opportunites"}
+                                  >
+                                    <Link href="/dashboard/prospection/opportunites">Opportunités</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProspectionArea && prospectionActiveTab === "scripts"}
+                                  >
+                                    <Link href="/dashboard/prospection/scripts">Scripts</Link>
+                                  </SidebarMenuSubButton>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </>
                       ) : item.url === "/dashboard/analyses" ? (
                         <>
@@ -284,6 +325,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           <SidebarMenuAction
                             type="button"
                             aria-label="Toggle Analyses menu"
+                            showOnHover={!isMobile}
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -298,7 +340,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                             />
                           </SidebarMenuAction>
 
-                          {isAnalysesMenuOpen && (
+                          {(isMobile || isAnalysesMenuOpen) && (
                             <SidebarMenuSub>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
@@ -326,6 +368,33 @@ export function AppSidebar({ user }: AppSidebarProps) {
                               </SidebarMenuSubItem>
                             </SidebarMenuSub>
                           )}
+
+                          {!isMobile && !isAnalysesMenuOpen && (
+                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                                <div className="flex flex-col gap-1">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isAnalysesArea && analysesActiveTab === "rapports"}
+                                  >
+                                    <Link href="/dashboard/analyses/rapports">Rapports</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isAnalysesArea && analysesActiveTab === "tjm"}
+                                  >
+                                    <Link href="/dashboard/analyses/tjm">Calculateur TJM</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isAnalysesArea && analysesActiveTab === "academy"}
+                                  >
+                                    <Link href="/dashboard/analyses/academy">Academy</Link>
+                                  </SidebarMenuSubButton>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </>
                       ) : item.url === "/dashboard/projets" ? (
                         <>
@@ -343,6 +412,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           <SidebarMenuAction
                             type="button"
                             aria-label="Toggle Projets menu"
+                            showOnHover={!isMobile}
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -357,7 +427,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                             />
                           </SidebarMenuAction>
 
-                          {isProjetsMenuOpen && (
+                          {(isMobile || isProjetsMenuOpen) && (
                             <SidebarMenuSub>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
@@ -393,6 +463,39 @@ export function AppSidebar({ user }: AppSidebarProps) {
                               </SidebarMenuSubItem>
                             </SidebarMenuSub>
                           )}
+
+                          {!isMobile && !isProjetsMenuOpen && (
+                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                                <div className="flex flex-col gap-1">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProjetsArea && projetsActiveTab === "missions"}
+                                  >
+                                    <Link href="/dashboard/projets/missions">Missions</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProjetsArea && projetsActiveTab === "time-tracker"}
+                                  >
+                                    <Link href="/dashboard/projets/time-tracker">Time tracker</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProjetsArea && projetsActiveTab === "documents"}
+                                  >
+                                    <Link href="/dashboard/projets/documents">Documents</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isProjetsArea && projetsActiveTab === "planning"}
+                                  >
+                                    <Link href="/dashboard/projets/planning">Agenda</Link>
+                                  </SidebarMenuSubButton>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </>
                       ) : item.url === "/dashboard/finance" ? (
                         <>
@@ -410,6 +513,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           <SidebarMenuAction
                             type="button"
                             aria-label="Toggle Finance menu"
+                            showOnHover={!isMobile}
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
@@ -424,7 +528,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                             />
                           </SidebarMenuAction>
 
-                          {isFinanceMenuOpen && (
+                          {(isMobile || isFinanceMenuOpen) && (
                             <SidebarMenuSub>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
@@ -467,6 +571,45 @@ export function AppSidebar({ user }: AppSidebarProps) {
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                             </SidebarMenuSub>
+                          )}
+
+                          {!isMobile && !isFinanceMenuOpen && (
+                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                                <div className="flex flex-col gap-1">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isFinanceArea && financeActiveTab === "factures"}
+                                  >
+                                    <Link href="/dashboard/finance/factures">Factures</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isFinanceArea && financeActiveTab === "devis"}
+                                  >
+                                    <Link href="/dashboard/finance/devis">Devis</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isFinanceArea && financeActiveTab === "depenses"}
+                                  >
+                                    <Link href="/dashboard/finance/depenses">Dépenses</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isFinanceArea && financeActiveTab === "charges"}
+                                  >
+                                    <Link href="/dashboard/finance/charges">Charges</Link>
+                                  </SidebarMenuSubButton>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isFinanceArea && financeActiveTab === "documents"}
+                                  >
+                                    <Link href="/dashboard/finance/documents">Documents</Link>
+                                  </SidebarMenuSubButton>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </>
                       ) : (

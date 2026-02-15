@@ -14,12 +14,53 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, config.auth.jwtSecret) as { userId: string };
 
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const clientId = searchParams.get('clientId');
+
     await connectDB();
 
-    const invoicesData = await Invoice.find({ userId: decoded.userId }).sort({ issueDate: -1 });
+    if (id) {
+      const invoiceDoc = await Invoice.findOne({ userId: decoded.userId, invoiceNumber: id });
+
+      if (!invoiceDoc) {
+        return NextResponse.json({ error: 'Facture non trouvée' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        invoice: {
+          id: invoiceDoc.invoiceNumber,
+          clientId: invoiceDoc.clientId?.toString() || '',
+          client: invoiceDoc.clientName,
+          amount: invoiceDoc.amount,
+          tax: invoiceDoc.tax,
+          total: invoiceDoc.total,
+          status: normalizeInvoiceStatus(invoiceDoc.status),
+          statusRaw: invoiceDoc.status,
+          issueDate: invoiceDoc.issueDate.toISOString().split('T')[0],
+          dueDate: invoiceDoc.dueDate.toISOString().split('T')[0],
+          paidDate: invoiceDoc.paidDate ? invoiceDoc.paidDate.toISOString().split('T')[0] : undefined,
+          items: Array.isArray(invoiceDoc.items)
+            ? invoiceDoc.items.map((item) => ({
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                total: item.total,
+              }))
+            : [],
+          notes: invoiceDoc.notes,
+        },
+      });
+    }
+
+    const query: Record<string, unknown> = { userId: decoded.userId };
+    if (clientId) query.clientId = clientId;
+
+    const invoicesData = await Invoice.find(query).sort({ issueDate: -1 });
 
     const invoices = invoicesData.map((inv) => ({
       id: inv.invoiceNumber,
+      clientId: inv.clientId?.toString() || '',
       client: inv.clientName,
       amount: inv.total,
       date: inv.issueDate.toISOString().split('T')[0],

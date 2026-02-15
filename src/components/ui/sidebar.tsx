@@ -176,6 +176,10 @@ const Sidebar = React.forwardRef<
             />
           )}
           <aside
+            data-side={side}
+            data-variant={variant}
+            data-collapsible={collapsible}
+            data-state={openMobile ? "expanded" : "collapsed"}
             className={cn(
               "fixed inset-y-0 left-0 z-50 flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground border-r transition-transform duration-200",
               openMobile ? "translate-x-0" : "-translate-x-full",
@@ -194,8 +198,11 @@ const Sidebar = React.forwardRef<
       <aside
         ref={ref}
         data-state={state}
+        data-side={side}
+        data-variant={variant}
+        data-collapsible={collapsible}
         className={cn(
-          "hidden md:flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r shrink-0 transition-all duration-200 sticky top-0",
+          "hidden md:flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r shrink-0 transition-all duration-200 sticky top-0 z-40",
           state === "expanded" ? "w-[var(--sidebar-width)]" : "w-0 overflow-hidden",
           className
         )}
@@ -334,7 +341,7 @@ const SidebarContent = React.forwardRef<
       ref={ref}
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-1",
         className
       )}
       {...props}
@@ -351,7 +358,7 @@ const SidebarGroup = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-0", className)}
+      className={cn("relative flex w-full min-w-0 flex-col py-1", className)}
       {...props}
     />
   )
@@ -441,7 +448,7 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button mx-1 my-0 flex w-full items-center gap-2 overflow-hidden rounded-lg border border-transparent px-2.5 text-left font-medium outline-none ring-sidebar-ring transition-colors duration-150 hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:border-sidebar-border active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-sidebar-border data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -483,6 +490,7 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
+    const title = typeof tooltip === "string" ? tooltip : undefined
 
     const button = (
       <Comp
@@ -490,6 +498,7 @@ const SidebarMenuButton = React.forwardRef<
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
+        title={title}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         {...props}
       />
@@ -514,7 +523,7 @@ const SidebarMenuAction = React.forwardRef<
       ref={ref}
       data-sidebar="menu-action"
       className={cn(
-        "absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0",
+        "absolute right-2 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",
@@ -559,7 +568,7 @@ const SidebarMenuSub = React.forwardRef<
     ref={ref}
     data-sidebar="menu-sub"
     className={cn(
-      "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5",
+      "ml-5 mr-2 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-3 py-1",
       "group-data-[collapsible=icon]:hidden",
       className
     )}
@@ -591,10 +600,10 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
+        "mx-0.5 my-0 flex h-[26px] min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-lg border border-transparent px-2 text-[13px] font-medium text-sidebar-foreground outline-none ring-sidebar-ring transition-colors duration-150 hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:border-sidebar-border active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
         "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-        size === "sm" && "text-xs",
-        size === "md" && "text-sm",
+        size === "sm" && "h-6 text-xs",
+        size === "md" && "h-[26px] text-[13px]",
         "group-data-[collapsible=icon]:hidden",
         className
       )}

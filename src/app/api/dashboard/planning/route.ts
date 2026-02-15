@@ -14,14 +14,21 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, config.auth.jwtSecret) as { userId: string };
 
+    const { searchParams } = new URL(request.url);
+    const clientId = searchParams.get('clientId');
+
     await connectDB();
 
-    const eventsData = await Event.find({ userId: decoded.userId })
+    const query: Record<string, unknown> = { userId: decoded.userId };
+    if (clientId) query.clientId = clientId;
+
+    const eventsData = await Event.find(query)
       .sort({ date: 1 })
       .limit(20);
 
     const events = eventsData.map(event => ({
       id: event._id.toString(),
+      clientId: event.clientId?.toString() || '',
       title: event.title,
       date: event.date.toISOString().split('T')[0],
       time: event.time || '',

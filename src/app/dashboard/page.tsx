@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, ResponsiveContainer, XAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { TrendingUp, TrendingDown, Clock, Target, DollarSign, FileText, Calendar, AlertTriangle, Briefcase } from "lucide-react";
+import { TrendingUp, TrendingDown, Clock, Target, Banknote, FileText, Calendar, AlertTriangle, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardStats {
@@ -415,7 +415,7 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
+                <Banknote className="h-4 w-4" />
                 {stats?.revenue.label || "Revenus total"}
               </div>
               <span className={`flex items-center text-xs ${(stats?.revenue.trend || 0) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
@@ -687,7 +687,7 @@ export default function Dashboard() {
                   ) : item.kind === "quote" ? (
                     <FileText className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <Banknote className="h-4 w-4 text-muted-foreground" />
                   );
 
                 const formattedDate = item.date

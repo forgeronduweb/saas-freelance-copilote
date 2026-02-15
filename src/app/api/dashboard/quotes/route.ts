@@ -1,9 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import type { Types } from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Quote from '@/lib/models/Quote';
+import Mission from '@/lib/models/Mission';
 import { config } from '@/lib/config';
+
+type QuoteItem = {
+  description: string;
+  quantity: number;
+};
+
+type QuoteForMission = {
+  userId: Types.ObjectId;
+  clientId?: Types.ObjectId;
+  clientName: string;
+  quoteNumber: string;
+  title?: string;
+  description?: string;
+  notes?: string;
+  items?: QuoteItem[];
+  total?: number;
+};
+
+function splitTasksFromText(text: string): string[] {
+  const cleaned = text
+    .replace(/\r\n/g, "\n")
+    .replace(/[•·]/g, "\n")
+    .replace(/\t/g, " ")
+    .trim();
+
+  if (!cleaned) return [];
+
+  return cleaned
+    .split(/\n|;|\|/g)
+    .map((line) => line.replace(/^\s*[-*\d.]+\s*/, "").trim())
+    .filter((line) => line.length >= 3);
+}
+
+function buildChecklistFromQuote(quote: QuoteForMission): Array<{ text: string; done: boolean }> {
+  const tasks: string[] = [];
+
+  const items = Array.isArray(quote?.items) ? quote.items : [];
+  for (const item of items) {
+    const description = String(item?.description || "").trim();
+    const quantity = Number(item?.quantity) || 0;
+    if (!description) continue;
+
+    const subTasks = splitTasksFromText(description);
+    if (subTasks.length > 1) {
+      tasks.push(...subTasks);
+    } else {
+      tasks.push(`${quantity > 1 ? `${quantity}x ` : ""}${description}`);
+    }
+  }
+
+  const descriptionTasks = splitTasksFromText(String(quote?.description || ""));
+  tasks.push(...descriptionTasks);
+
+  const notesTasks = splitTasksFromText(String(quote?.notes || ""));
+  tasks.push(...notesTasks);
+
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+  for (const t of tasks) {
+    const normalized = t.toLowerCase();
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    deduped.push(t);
+  }
+
+  return deduped.slice(0, 20).map((text) => ({ text, done: false }));
+}
+
+async function ensureMissionForAcceptedQuote(quote: QuoteForMission) {
+  const quoteNumber = String(quote?.quoteNumber || "").trim();
+  if (!quoteNumber) return;
+
+  const missionTitle = `Devis ${quoteNumber} — ${String(quote?.title || "Travail").trim() || "Travail"}`;
+  const existing = await Mission.findOne({ userId: quote.userId, title: missionTitle }).select("_id");
+  if (existing) return;
+
+  const checklist = buildChecklistFromQuote(quote);
+  const descriptionParts = [
+    String(quote?.description || "").trim(),
+    String(quote?.notes || "").trim() ? `Notes: ${String(quote?.notes || "").trim()}` : "",
+  ].filter(Boolean);
+
+  await Mission.create({
+    userId: quote.userId,
+    clientId: quote.clientId,
+    clientName: quote.clientName,
+    title: missionTitle,
+    description: descriptionParts.join("\n\n") || undefined,
+    status: "To-do",
+    priority: "Moyenne",
+    budget: typeof quote?.total === "number" ? quote.total : undefined,
+    checklist,
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +113,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const clientId = searchParams.get('clientId');
 
     await connectDB();
 
@@ -45,7 +142,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const quotesData = await Quote.find({ userId: decoded.userId }).sort({ createdAt: -1 });
+    const query: Record<string, unknown> = { userId: decoded.userId };
+    if (clientId) query.clientId = clientId;
+
+    const quotesData = await Quote.find(query).sort({ createdAt: -1 });
 
     const quotes = quotesData.map(q => ({
       id: q.quoteNumber,
@@ -170,6 +270,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Devis non trouvé' }, { status: 404 });
     }
 
+    const previousStatus = quote.status;
+
     if (typeof status === 'string' && status.length > 0) {
       quote.status = status;
       if (status === 'Accepté') {
@@ -193,6 +295,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     await quote.save();
+
+    if (status === "Accepté" && previousStatus !== "Accepté") {
+      try {
+        await ensureMissionForAcceptedQuote(quote as unknown as QuoteForMission);
+      } catch (e) {
+        console.error("Erreur génération mission depuis devis accepté:", e);
+      }
+    }
 
     return NextResponse.json({ 
       quote: {

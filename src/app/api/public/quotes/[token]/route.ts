@@ -3,6 +3,33 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Quote from "@/lib/models/Quote";
 import User from "@/lib/models/User";
+import Mission from "@/lib/models/Mission";
+
+type QuoteItem = {
+  description: string;
+  quantity: number;
+};
+
+type QuoteForMission = {
+  userId: unknown;
+  clientId?: unknown;
+  clientName: string;
+  quoteNumber: string;
+  title?: string;
+  description?: string;
+  notes?: string;
+  items?: QuoteItem[];
+  total?: number;
+};
+
+type QuoteDocument = QuoteForMission & {
+  acceptedAt?: unknown;
+  refusedAt?: unknown;
+  status: string;
+  publicToken?: string;
+  validUntil?: { toISOString?: () => string } | string;
+  suggestions?: Array<{ message: string; createdAt: { toISOString?: () => string } | string }>;
+};
 
 type PublicProvider = {
   name: string;
@@ -13,7 +40,16 @@ type PublicProvider = {
   skills?: string[];
 };
 
-function serializeProvider(user: any): PublicProvider {
+type UserDocument = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  location?: { city?: string; country?: string };
+  skills?: unknown;
+};
+
+function serializeProvider(user: UserDocument): PublicProvider {
   return {
     name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Freelance",
     email: user?.email || "",
@@ -24,19 +60,93 @@ function serializeProvider(user: any): PublicProvider {
   };
 }
 
-async function getProviderForQuote(quote: any): Promise<PublicProvider | null> {
+function splitTasksFromText(text: string): string[] {
+  const cleaned = text
+    .replace(/\r\n/g, "\n")
+    .replace(/[•·]/g, "\n")
+    .replace(/\t/g, " ")
+    .trim();
+
+  if (!cleaned) return [];
+
+  return cleaned
+    .split(/\n|;|\|/g)
+    .map((line) => line.replace(/^\s*[-*\d.]+\s*/, "").trim())
+    .filter((line) => line.length >= 3);
+}
+
+function buildChecklistFromQuote(quote: QuoteForMission): Array<{ text: string; done: boolean }> {
+  const tasks: string[] = [];
+
+  const items = Array.isArray(quote?.items) ? quote.items : [];
+  for (const item of items) {
+    const description = String(item?.description || "").trim();
+    const quantity = Number(item?.quantity) || 0;
+    if (!description) continue;
+
+    const subTasks = splitTasksFromText(description);
+    if (subTasks.length > 1) {
+      tasks.push(...subTasks);
+    } else {
+      tasks.push(`${quantity > 1 ? `${quantity}x ` : ""}${description}`);
+    }
+  }
+
+  tasks.push(...splitTasksFromText(String(quote?.description || "")));
+  tasks.push(...splitTasksFromText(String(quote?.notes || "")));
+
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+  for (const t of tasks) {
+    const normalized = t.toLowerCase();
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    deduped.push(t);
+  }
+
+  return deduped.slice(0, 20).map((text) => ({ text, done: false }));
+}
+
+async function ensureMissionForAcceptedQuote(quote: QuoteForMission) {
+  const quoteNumber = String(quote?.quoteNumber || "").trim();
+  if (!quoteNumber) return;
+
+  const missionTitle = `Devis ${quoteNumber} — ${String(quote?.title || "Travail").trim() || "Travail"}`;
+  const existing = await Mission.findOne({ userId: quote.userId, title: missionTitle }).select("_id");
+  if (existing) return;
+
+  const checklist = buildChecklistFromQuote(quote);
+  const descriptionParts = [
+    String(quote?.description || "").trim(),
+    String(quote?.notes || "").trim() ? `Notes: ${String(quote?.notes || "").trim()}` : "",
+  ].filter(Boolean);
+
+  await Mission.create({
+    userId: quote.userId,
+    clientId: quote.clientId,
+    clientName: quote.clientName,
+    title: missionTitle,
+    description: descriptionParts.join("\n\n") || undefined,
+    status: "To-do",
+    priority: "Moyenne",
+    budget: typeof quote?.total === "number" ? quote.total : undefined,
+    checklist,
+  });
+}
+
+async function getProviderForQuote(quote: QuoteDocument): Promise<PublicProvider | null> {
   try {
     if (!quote?.userId) return null;
     const user = await User.findById(quote.userId).select("firstName lastName email phone location skills");
     if (!user) return null;
-    return serializeProvider(user);
+    return serializeProvider(user as unknown as UserDocument);
   } catch (e) {
     console.error("Erreur chargement prestataire:", e);
     return null;
   }
 }
 
-function serializeQuote(quote: any, provider: PublicProvider | null) {
+function serializeQuote(quote: QuoteDocument, provider: PublicProvider | null) {
   return {
     id: quote.quoteNumber,
     clientName: quote.clientName,
@@ -47,7 +157,7 @@ function serializeQuote(quote: any, provider: PublicProvider | null) {
     validUntil: quote.validUntil?.toISOString?.().split("T")[0] ?? quote.validUntil,
     status: quote.status,
     provider,
-    suggestions: (quote.suggestions || []).map((s: any) => ({
+    suggestions: (quote.suggestions || []).map((s) => ({
       message: s.message,
       createdAt: s.createdAt?.toISOString?.() ?? s.createdAt,
     })),
@@ -59,7 +169,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ to
     await connectDB();
 
     const { token } = await context.params;
-    const quote = await Quote.findOne({ publicToken: token });
+    const quote = (await Quote.findOne({ publicToken: token })) as unknown as QuoteDocument | null;
 
     if (!quote) {
       return NextResponse.json({ error: "Devis non trouvé" }, { status: 404 });
@@ -99,8 +209,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ to
       return NextResponse.json({ error: "Devis non trouvé" }, { status: 404 });
     }
 
-    const provider = await getProviderForQuote(quote);
-    return NextResponse.json({ quote: serializeQuote(quote, provider) }, { status: 201 });
+    const typed = quote as unknown as QuoteDocument;
+    const provider = await getProviderForQuote(typed);
+    return NextResponse.json({ quote: serializeQuote(typed, provider) }, { status: 201 });
   } catch (error) {
     console.error("Erreur API public quote POST:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -140,6 +251,14 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ t
     }
 
     await quote.save();
+
+    if (decision === "accept") {
+      try {
+        await ensureMissionForAcceptedQuote(quote as unknown as QuoteForMission);
+      } catch (e) {
+        console.error("Erreur génération mission depuis devis accepté (public):", e);
+      }
+    }
 
     const provider = await getProviderForQuote(quote);
     return NextResponse.json({ quote: serializeQuote(quote, provider) });

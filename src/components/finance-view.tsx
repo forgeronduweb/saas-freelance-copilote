@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
+import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +27,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import {
   Plus,
   MoreHorizontal,
@@ -180,9 +190,15 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
       const response = await fetch("/api/dashboard/quotes", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ id, status }),
       });
       if (response.ok) {
+        const payload = await response.json().catch(() => null);
+        if (status === "Accepté") {
+          const clientId = typeof payload?.updateClient === "string" ? payload.updateClient : undefined;
+          window.dispatchEvent(new CustomEvent("missions:refresh", { detail: { clientId } }));
+        }
         fetchData();
       }
     } catch (error) {
@@ -652,61 +668,247 @@ export function FinanceView({ activeTab }: { activeTab: FinanceTab }) {
 
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="factures" className="mt-6">
-          <DataTable
-            columns={invoiceColumns}
-            data={invoices}
-            searchKey="client"
-            searchPlaceholder="Rechercher par client..."
-            onRowClick={(invoice) => router.push(`/dashboard/finance/${invoice.id}`)}
-            mobileVisibleColumnIds={["client", "status"]}
-            mobileInlineColumnIds={["status"]}
-            actionButton={
-              <Sheet open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
-                <SheetTrigger asChild>
-                  <Button>
-                    <Plus data-icon="inline-start" />
-                    <span className="hidden sm:inline">Nouvelle facture</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-2xl">
-                  <SheetHeader>
-                    <SheetTitle>Nouvelle facture</SheetTitle>
-                    <SheetDescription>Créez une facture avec les informations du client.</SheetDescription>
-                  </SheetHeader>
-                  <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
-                </SheetContent>
-              </Sheet>
-            }
-          />
+          {invoices.length === 0 ? (
+            <div className="p-6 sm:p-10">
+              <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Factures</h1>
+                    <p className="text-muted-foreground">
+                      Créez votre première facture en quelques secondes, puis retrouvez l’historique et le suivi des paiements
+                      ici.
+                    </p>
+                  </div>
+
+                  <Sheet open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+                    <SheetTrigger asChild>
+                      <Button className="w-full sm:w-auto">
+                        <Plus data-icon="inline-start" />
+                        Créer une facture
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-2xl">
+                      <SheetHeader>
+                        <Breadcrumb>
+                          <BreadcrumbList>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard">Dashboard</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard/finance">Finance</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard/finance">Factures</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbPage>Nouvelle facture</BreadcrumbPage>
+                            </BreadcrumbItem>
+                          </BreadcrumbList>
+                        </Breadcrumb>
+                        <SheetTitle>Nouvelle facture</SheetTitle>
+                        <SheetDescription>Créez une facture avec les informations du client.</SheetDescription>
+                      </SheetHeader>
+                      <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
+                <div className="w-full overflow-hidden rounded-2xl bg-muted/30 p-4 sm:p-6">
+                  <Image
+                    src="/facture.jpg"
+                    alt="Factures"
+                    width={1600}
+                    height={1000}
+                    className="h-auto w-full max-h-[520px] object-contain"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              columns={invoiceColumns}
+              data={invoices}
+              searchKey="client"
+              searchPlaceholder="Rechercher par client..."
+              onRowClick={(invoice) => router.push(`/dashboard/finance/${invoice.id}`)}
+              mobileVisibleColumnIds={["client", "status"]}
+              mobileInlineColumnIds={["status"]}
+              actionButton={
+                <Sheet open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+                  <SheetTrigger asChild>
+                    <Button>
+                      <Plus data-icon="inline-start" />
+                      <span className="hidden sm:inline">Nouvelle facture</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-2xl">
+                    <SheetHeader>
+                      <Breadcrumb>
+                        <BreadcrumbList>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard">Dashboard</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard/finance">Finance</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard/finance">Factures</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbPage>Nouvelle facture</BreadcrumbPage>
+                          </BreadcrumbItem>
+                        </BreadcrumbList>
+                      </Breadcrumb>
+                      <SheetTitle>Nouvelle facture</SheetTitle>
+                      <SheetDescription>Créez une facture avec les informations du client.</SheetDescription>
+                    </SheetHeader>
+                    <InvoiceForm onSubmit={handleCreateInvoice} onCancel={() => setInvoiceDialogOpen(false)} />
+                  </SheetContent>
+                </Sheet>
+              }
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="devis" className="mt-6">
-          <DataTable
-            columns={quoteColumns}
-            data={quotes}
-            searchKey="clientName"
-            searchPlaceholder="Rechercher par client..."
-            onRowClick={(quote) => router.push(`/dashboard/finance/devis/${quote.id}`)}
-            mobileVisibleColumnIds={["clientName", "status"]}
-            mobileInlineColumnIds={["status"]}
-            actionButton={
-              <Sheet open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
-                <SheetTrigger asChild>
-                  <Button>
-                    <Plus data-icon="inline-start" />
-                    <span className="hidden sm:inline">Nouveau devis</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-2xl">
-                  <SheetHeader>
-                    <SheetTitle>Nouveau devis</SheetTitle>
-                    <SheetDescription>Créez un devis avec les informations du client.</SheetDescription>
-                  </SheetHeader>
-                  <QuoteForm onSubmit={handleCreateQuote} onCancel={() => setQuoteDialogOpen(false)} />
-                </SheetContent>
-              </Sheet>
-            }
-          />
+          {quotes.length === 0 ? (
+            <div className="p-6 sm:p-10">
+              <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Devis</h1>
+                    <p className="text-muted-foreground">
+                      Commencez par créer un devis clair pour votre client. Une fois créé, vous retrouverez ici la liste et le
+                      suivi des statuts.
+                    </p>
+                  </div>
+
+                  <Sheet open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+                    <SheetTrigger asChild>
+                      <Button className="w-full sm:w-auto">
+                        <Plus data-icon="inline-start" />
+                        Créer un devis
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="w-full sm:max-w-2xl">
+                      <SheetHeader>
+                        <Breadcrumb>
+                          <BreadcrumbList>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard">Dashboard</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard/finance">Finance</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbLink asChild>
+                                <Link href="/dashboard/finance">Devis</Link>
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbPage>Nouveau devis</BreadcrumbPage>
+                            </BreadcrumbItem>
+                          </BreadcrumbList>
+                        </Breadcrumb>
+                        <SheetTitle>Nouveau devis</SheetTitle>
+                        <SheetDescription>Créez un devis avec les informations du client.</SheetDescription>
+                      </SheetHeader>
+                      <QuoteForm onSubmit={handleCreateQuote} onCancel={() => setQuoteDialogOpen(false)} />
+                    </SheetContent>
+                  </Sheet>
+                </div>
+
+                <div className="w-full overflow-hidden rounded-2xl bg-muted/30 p-4 sm:p-6">
+                  <Image
+                    src="/devis.jpg"
+                    alt="Devis"
+                    width={1600}
+                    height={1000}
+                    className="h-auto w-full max-h-[520px] object-contain"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              columns={quoteColumns}
+              data={quotes}
+              searchKey="clientName"
+              searchPlaceholder="Rechercher par client..."
+              onRowClick={(quote) => router.push(`/dashboard/finance/devis/${quote.id}`)}
+              mobileVisibleColumnIds={["clientName", "status"]}
+              mobileInlineColumnIds={["status"]}
+              actionButton={
+                <Sheet open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+                  <SheetTrigger asChild>
+                    <Button>
+                      <Plus data-icon="inline-start" />
+                      <span className="hidden sm:inline">Nouveau devis</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-2xl">
+                    <SheetHeader>
+                      <Breadcrumb>
+                        <BreadcrumbList>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard">Dashboard</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard/finance">Finance</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                              <Link href="/dashboard/finance">Devis</Link>
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbPage>Nouveau devis</BreadcrumbPage>
+                          </BreadcrumbItem>
+                        </BreadcrumbList>
+                      </Breadcrumb>
+                      <SheetTitle>Nouveau devis</SheetTitle>
+                      <SheetDescription>Créez un devis avec les informations du client.</SheetDescription>
+                    </SheetHeader>
+                    <QuoteForm onSubmit={handleCreateQuote} onCancel={() => setQuoteDialogOpen(false)} />
+                  </SheetContent>
+                </Sheet>
+              }
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="depenses" className="mt-6">

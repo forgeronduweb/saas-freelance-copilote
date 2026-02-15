@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
       email: body.email,
       phone: body.phone,
       company: body.company,
+      notes: body.notes,
       status: body.status || 'Prospect',
       totalProjects: 0,
       totalRevenue: 0,

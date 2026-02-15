@@ -121,6 +121,12 @@ export default function QuoteDetailPage() {
         return;
       }
 
+      const payload = await res.json().catch(() => null);
+      if (newStatus === "Accepté") {
+        const clientId = typeof payload?.updateClient === "string" ? payload.updateClient : undefined;
+        window.dispatchEvent(new CustomEvent("missions:refresh", { detail: { clientId } }));
+      }
+
       setQuote((prev) => (prev ? { ...prev, status: newStatus as QuoteStatus } : prev));
     } catch (e) {
       console.error("Erreur mise à jour statut devis:", e);

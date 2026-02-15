@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Briefcase, DollarSign } from "lucide-react";
+import { User, Briefcase, Banknote } from "lucide-react";
 
 export default function ExperienceOnboardingPage() {
   const router = useRouter();
@@ -112,7 +112,7 @@ export default function ExperienceOnboardingPage() {
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium">
               <Briefcase className="w-4 h-4 text-primary" />
-              Années d'expérience
+              Années d&apos;expérience
             </label>
             <input
               type="number"
@@ -129,7 +129,7 @@ export default function ExperienceOnboardingPage() {
 
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium">
-              <DollarSign className="w-4 h-4 text-primary" />
+              <Banknote className="w-4 h-4 text-primary" />
               Taux horaire (FCFA)
             </label>
             <input

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,12 +41,71 @@ type Client = {
   joinedDate: string;
 };
 
+type Mission = {
+  id: string;
+  clientId: string;
+  title: string;
+  client: string;
+  status: "To-do" | "En cours" | "Terminé";
+  priority?: "Basse" | "Moyenne" | "Haute";
+  dueDate?: string;
+  evidenceUrls?: string[];
+};
+
+type Quote = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  total: number;
+  validUntil: string;
+  status: "Brouillon" | "Envoyé" | "Accepté" | "Refusé" | "Expiré";
+  createdAt: string;
+};
+
+type Invoice = {
+  id: string;
+  clientId: string;
+  client: string;
+  amount: number;
+  date: string;
+  dueDate: string;
+  status: "Payée" | "En attente" | "En retard" | "Brouillon";
+};
+
+type PlanningEvent = {
+  id: string;
+  clientId: string;
+  title: string;
+  date: string;
+  time: string;
+  type: string;
+  status: string;
+  description?: string;
+};
+
+function getEvidenceKind(url: string): "image" | "video" | "link" {
+  const clean = url.split("?")[0].split("#")[0].toLowerCase();
+  if (clean.endsWith(".png") || clean.endsWith(".jpg") || clean.endsWith(".jpeg") || clean.endsWith(".webp") || clean.endsWith(".gif")) {
+    return "image";
+  }
+  if (clean.endsWith(".mp4") || clean.endsWith(".webm") || clean.endsWith(".ogg")) {
+    return "video";
+  }
+  return "link";
+}
+
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [events, setEvents] = useState<PlanningEvent[]>([]);
 
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
 
@@ -80,6 +140,58 @@ export default function ClientDetailPage() {
       fetchClient();
     }
   }, [params.id]);
+
+  const loadRelated = async () => {
+    if (!client?.id) return;
+
+    setRelatedLoading(true);
+    try {
+      const [missionsRes, quotesRes, financeRes, planningRes] = await Promise.all([
+        fetch(`/api/dashboard/missions?clientId=${encodeURIComponent(client.id)}`, { credentials: "include" })
+          .then(async (r) => (r.ok ? r.json() : { missions: [] }))
+          .then((d) => (Array.isArray(d?.missions) ? (d.missions as Mission[]) : [])),
+        fetch(`/api/dashboard/quotes?clientId=${encodeURIComponent(client.id)}`, { credentials: "include" })
+          .then(async (r) => (r.ok ? r.json() : { quotes: [] }))
+          .then((d) => (Array.isArray(d?.quotes) ? (d.quotes as Quote[]) : [])),
+        fetch(`/api/dashboard/finance?clientId=${encodeURIComponent(client.id)}`, { credentials: "include" })
+          .then(async (r) => (r.ok ? r.json() : { invoices: [] }))
+          .then((d) => (Array.isArray(d?.invoices) ? (d.invoices as Invoice[]) : [])),
+        fetch(`/api/dashboard/planning?clientId=${encodeURIComponent(client.id)}`, { credentials: "include" })
+          .then(async (r) => (r.ok ? r.json() : { events: [] }))
+          .then((d) => (Array.isArray(d?.events) ? (d.events as PlanningEvent[]) : [])),
+      ]);
+
+      setMissions(missionsRes);
+      setQuotes(quotesRes);
+      setInvoices(financeRes);
+      setEvents(planningRes);
+    } catch (err) {
+      console.error("Erreur chargement données client:", err);
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadRelated();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client?.id]);
+
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ clientId?: string }>).detail;
+      const targetClientId = typeof detail?.clientId === "string" ? detail.clientId : undefined;
+      if (!client?.id) return;
+      if (targetClientId && targetClientId !== client.id) return;
+      void loadRelated();
+    };
+
+    window.addEventListener("missions:refresh", handler as EventListener);
+    return () => {
+      window.removeEventListener("missions:refresh", handler as EventListener);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client?.id]);
 
   if (loading) {
     return (
@@ -259,6 +371,215 @@ export default function ClientDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle>Missions</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/projets?tab=missions">Voir le board</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {relatedLoading ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-5 w-5 animate-spin text-yellow-500" />
+                </div>
+              ) : missions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune mission liée à ce contact.</p>
+              ) : (
+                <div className="space-y-3">
+                  {missions.map((m) => (
+                    <div key={m.id} className="rounded-lg border p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{m.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {m.status}
+                            {m.priority ? ` • ${m.priority}` : ""}
+                            {m.dueDate ? ` • ${m.dueDate}` : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      {Array.isArray(m.evidenceUrls) && m.evidenceUrls.length > 0 ? (
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">Preuves / médias</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {m.evidenceUrls.slice(0, 6).map((url) => {
+                              const kind = getEvidenceKind(url);
+                              if (kind === "image") {
+                                return (
+                                  <a
+                                    key={url}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block overflow-hidden rounded-md border bg-muted/20"
+                                  >
+                                    <Image
+                                      src={url}
+                                      alt="Preuve"
+                                      width={800}
+                                      height={320}
+                                      sizes="(max-width: 640px) 100vw, 50vw"
+                                      className="h-40 w-full object-cover"
+                                      unoptimized
+                                    />
+                                  </a>
+                                );
+                              }
+                              if (kind === "video") {
+                                return (
+                                  <div key={url} className="overflow-hidden rounded-md border bg-muted/20">
+                                    <video src={url} controls className="h-40 w-full object-cover" />
+                                  </div>
+                                );
+                              }
+                              return (
+                                <a
+                                  key={url}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm underline break-all"
+                                >
+                                  {url}
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle>Devis</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/finance/devis">Tous les devis</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {relatedLoading ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-5 w-5 animate-spin text-yellow-500" />
+                </div>
+              ) : quotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun devis pour ce contact.</p>
+              ) : (
+                <div className="space-y-2">
+                  {quotes.slice(0, 6).map((q) => (
+                    <Link
+                      key={q.id}
+                      href={`/dashboard/finance/devis/${q.id}`}
+                      className="block rounded-lg border p-3 hover:bg-accent/30"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">{q.id}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Intl.NumberFormat("fr-CI", {
+                              style: "currency",
+                              currency: "XOF",
+                            }).format(q.total)}
+                            {q.validUntil ? ` • Valide jusqu’au ${q.validUntil}` : ""}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">{q.status}</Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle>Factures</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/finance/factures">Toutes les factures</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {relatedLoading ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-5 w-5 animate-spin text-yellow-500" />
+                </div>
+              ) : invoices.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune facture pour ce contact.</p>
+              ) : (
+                <div className="space-y-2">
+                  {invoices.slice(0, 6).map((inv) => (
+                    <Link
+                      key={inv.id}
+                      href={`/dashboard/finance/${inv.id}`}
+                      className="block rounded-lg border p-3 hover:bg-accent/30"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">{inv.id}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Intl.NumberFormat("fr-CI", {
+                              style: "currency",
+                              currency: "XOF",
+                            }).format(inv.amount)}
+                            {inv.dueDate ? ` • Échéance ${inv.dueDate}` : ""}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">{inv.status}</Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <CardTitle>Agenda</CardTitle>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/planning">Voir l’agenda</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {relatedLoading ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-5 w-5 animate-spin text-yellow-500" />
+                </div>
+              ) : events.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun événement planifié pour ce contact.</p>
+              ) : (
+                <div className="space-y-2">
+                  {events.slice(0, 8).map((ev) => (
+                    <Link
+                      key={ev.id}
+                      href={`/dashboard/planning/${ev.id}`}
+                      className="block rounded-lg border p-3 hover:bg-accent/30"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">{ev.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {ev.date}
+                            {ev.time ? ` • ${ev.time}` : ""}
+                            {ev.type ? ` • ${ev.type}` : ""}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">{ev.status}</Badge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
@@ -315,16 +636,16 @@ export default function ClientDetailPage() {
       </Sheet>
 
       <Sheet open={rdvDialogOpen} onOpenChange={setRdvDialogOpen}>
-        <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader>
+        <SheetContent className="w-full sm:max-w-md overflow-hidden flex flex-col">
+          <SheetHeader className="pb-2 shrink-0">
             <SheetTitle>Planifier un RDV</SheetTitle>
             <SheetDescription>
               Ajoutez un événement dans votre planning pour ce client. Une fois créé, vous pourrez modifier l’heure ou annuler le RDV depuis sa page de détail.
             </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleCreateRdv}>
-            <div className="py-4">
-              <div className="space-y-4">
+          <form onSubmit={handleCreateRdv} className="flex flex-col flex-1 min-h-0 gap-4">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+              <div className="space-y-4 pb-2">
                 <div className="px-1">
                   <Input
                     id="rdv-title"
@@ -371,15 +692,18 @@ export default function ClientDetailPage() {
                 </div>
               </div>
             </div>
-            <SheetFooter>
-              <Button type="button" variant="outline" onClick={() => setRdvDialogOpen(false)}>
-                Annuler
-              </Button>
-              <Button type="submit" disabled={rdvCreating}>
-                {rdvCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Planifier
-              </Button>
-            </SheetFooter>
+
+            <div className="pt-3 border-t bg-background shrink-0">
+              <SheetFooter className="mt-0">
+                <Button type="button" variant="outline" onClick={() => setRdvDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={rdvCreating}>
+                  {rdvCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Planifier
+                </Button>
+              </SheetFooter>
+            </div>
           </form>
         </SheetContent>
       </Sheet>

@@ -15,7 +15,6 @@ import {
   MessageSquare,
   HelpCircle,
   ChevronDown,
-  Link2,
 } from "lucide-react"
 
 import {
@@ -66,7 +65,6 @@ export const menuSections = [
     items: [
       { title: "Finance & Admin", url: "/dashboard/finance", icon: CreditCard },
       { title: "Entreprise", url: "/dashboard/entreprise", icon: Building2 },
-      { title: "Intégrations", url: "/dashboard/integrations", icon: Link2 },
     ],
   },
 ] as const
@@ -75,7 +73,7 @@ interface AppSidebarProps {
   user?: { name?: string; email?: string } | null
 }
 
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar({}: AppSidebarProps) {
   const pathname = usePathname()
   const { isMobile } = useSidebar()
 
@@ -171,18 +169,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
     if (isMobile && isFinanceArea) setIsFinanceMenuOpen(true)
   }, [isMobile, isFinanceArea])
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    } catch (error) {
-      console.error("Erreur logout:", error);
-    } finally {
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-  }
-
   return (
     <Sidebar>
       <SidebarHeader className="h-14 flex items-center justify-start px-4 border-b">
@@ -195,8 +181,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <div className="flex flex-col gap-4">
           {menuSections.map((section) => (
             <SidebarGroup key={section.label}>
-              <SidebarGroupLabel className="p-2">{section.label}</SidebarGroupLabel>
-              <SidebarGroupContent className="px-2">
+              <SidebarGroupLabel className="px-3">{section.label}</SidebarGroupLabel>
+              <SidebarGroupContent className="px-1">
                 <SidebarMenu className="gap-1">
                   {section.items.map((item) => (
                     <SidebarMenuItem
@@ -274,12 +260,13 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           )}
 
                           {!isMobile && !isProspectionMenuOpen && (
-                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
-                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                            <div className="absolute left-full top-0 z-[80] hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-3 min-w-64 rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-150">
                                 <div className="flex flex-col gap-1">
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProspectionArea && prospectionActiveTab === "pipeline"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/prospection/pipeline">Pipeline</Link>
                                   </SidebarMenuSubButton>
@@ -289,18 +276,21 @@ export function AppSidebar({ user }: AppSidebarProps) {
                                       (isProspectionArea && prospectionActiveTab === "contacts") ||
                                       pathname.startsWith("/dashboard/clients")
                                     }
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/prospection/contacts">Contacts</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProspectionArea && prospectionActiveTab === "opportunites"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/prospection/opportunites">Opportunités</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProspectionArea && prospectionActiveTab === "scripts"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/prospection/scripts">Scripts</Link>
                                   </SidebarMenuSubButton>
@@ -370,24 +360,27 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           )}
 
                           {!isMobile && !isAnalysesMenuOpen && (
-                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
-                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                            <div className="absolute left-full top-0 z-[80] hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-3 min-w-64 rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-150">
                                 <div className="flex flex-col gap-1">
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isAnalysesArea && analysesActiveTab === "rapports"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/analyses/rapports">Rapports</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isAnalysesArea && analysesActiveTab === "tjm"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/analyses/tjm">Calculateur TJM</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isAnalysesArea && analysesActiveTab === "academy"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/analyses/academy">Academy</Link>
                                   </SidebarMenuSubButton>
@@ -465,30 +458,34 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           )}
 
                           {!isMobile && !isProjetsMenuOpen && (
-                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
-                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                            <div className="absolute left-full top-0 z-[80] hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-3 min-w-64 rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-150">
                                 <div className="flex flex-col gap-1">
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProjetsArea && projetsActiveTab === "missions"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/projets/missions">Missions</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProjetsArea && projetsActiveTab === "time-tracker"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/projets/time-tracker">Time tracker</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProjetsArea && projetsActiveTab === "documents"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/projets/documents">Documents</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isProjetsArea && projetsActiveTab === "planning"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/projets/planning">Agenda</Link>
                                   </SidebarMenuSubButton>
@@ -574,18 +571,20 @@ export function AppSidebar({ user }: AppSidebarProps) {
                           )}
 
                           {!isMobile && !isFinanceMenuOpen && (
-                            <div className="absolute left-full top-0 z-50 hidden group-hover/menu-item:block group-focus-within/menu-item:block">
-                              <div className="ml-2 min-w-56 rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-lg">
+                            <div className="absolute left-full top-0 z-[80] hidden group-hover/menu-item:block group-focus-within/menu-item:block">
+                              <div className="ml-3 min-w-64 rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-2xl ring-1 ring-black/10 animate-in fade-in-0 zoom-in-95 duration-150">
                                 <div className="flex flex-col gap-1">
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isFinanceArea && financeActiveTab === "factures"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/finance/factures">Factures</Link>
                                   </SidebarMenuSubButton>
                                   <SidebarMenuSubButton
                                     asChild
                                     isActive={isFinanceArea && financeActiveTab === "devis"}
+                                    className="justify-start"
                                   >
                                     <Link href="/dashboard/finance/devis">Devis</Link>
                                   </SidebarMenuSubButton>

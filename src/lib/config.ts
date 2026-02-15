@@ -153,11 +153,8 @@ export const config = {
   // Devises supportées
   currencies: {
     primary: 'FCFA',
-    supported: ['FCFA', 'USD', 'EUR'],
-    exchangeRates: {
-      USD: 600, // 1 USD = 600 FCFA (approximatif)
-      EUR: 650, // 1 EUR = 650 FCFA (approximatif)
-    },
+    supported: ['FCFA'],
+    exchangeRates: {},
   },
 } as const;
 

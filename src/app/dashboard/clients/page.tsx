@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Plus, MoreHorizontal, Mail, Phone, Pencil, Trash2, Loader2, Building2, Tag } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { NotionPropertyRow } from "@/components/ui/notion-property-row";
+import Image from "next/image";
 
 type Client = {
   id: string;
@@ -281,99 +291,254 @@ export default function ClientsPage() {
         </DialogContent>
       </Dialog>
 
-      <DataTable 
-        columns={columns} 
-        data={clients} 
-        searchKey="name" 
-        searchPlaceholder="Rechercher un client..."
-        onRowClick={(client) => router.push(`/dashboard/clients/${client.id}`)}
-        actionButton={
-          <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <SheetTrigger asChild>
-              <Button>
-                <Plus data-icon="inline-start" />
-                Nouveau client
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md">
-              <SheetHeader>
-                <SheetTitle>Nouveau client</SheetTitle>
-                <SheetDescription>
-                  Ajoutez un nouveau client à votre base.
-                </SheetDescription>
-              </SheetHeader>
-              <form onSubmit={handleCreateClient}>
-                <div className="py-4 max-h-[70vh] overflow-y-auto">
-                  <div className="space-y-4">
-                    <div className="px-1">
-                      <Input
-                        id="name"
-                        placeholder="Nom du client"
-                        value={newClientName}
-                        onChange={(e) => setNewClientName(e.target.value)}
-                        required
-                        className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
-                      />
+      {clients.length === 0 ? (
+        <div className="p-6 sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Clients</h1>
+                <p className="text-muted-foreground">
+                  Centralisez vos prospects et clients, suivez l’historique des échanges et gérez les actions commerciales.
+                </p>
+              </div>
+
+              <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <SheetTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus data-icon="inline-start" />
+                    Créer un client
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md overflow-hidden flex flex-col">
+                  <SheetHeader className="pb-2 shrink-0">
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        <BreadcrumbItem>
+                          <BreadcrumbLink asChild>
+                            <Link href="/dashboard">Dashboard</Link>
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbLink asChild>
+                            <Link href="/dashboard/clients">Clients</Link>
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbPage>Nouveau client</BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                    <SheetTitle>Nouveau client</SheetTitle>
+                    <SheetDescription>
+                      Ajoutez un nouveau client à votre base.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <form onSubmit={handleCreateClient} className="flex flex-col flex-1 min-h-0 gap-4">
+                    <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                      <div className="space-y-4 pb-2">
+                        <div className="px-1">
+                          <Input
+                            id="name"
+                            placeholder="Nom du client"
+                            value={newClientName}
+                            onChange={(e) => setNewClientName(e.target.value)}
+                            required
+                            className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
+                          />
+                        </div>
+
+                        <div className="rounded-xl border bg-background divide-y">
+                          <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="email@exemple.com"
+                              value={newClientEmail}
+                              onChange={(e) => setNewClientEmail(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              placeholder="+225 XX XX XX XX"
+                              value={newClientPhone}
+                              onChange={(e) => setNewClientPhone(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Entreprise" icon={<Building2 className="h-4 w-4" />}>
+                            <Input
+                              id="company"
+                              placeholder="Nom de l'entreprise"
+                              value={newClientCompany}
+                              onChange={(e) => setNewClientCompany(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+                          <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                            <Select
+                              value={newClientStatus}
+                              onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
+                            >
+                              <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                                <SelectValue placeholder="Choisir le type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Prospect">Prospect</SelectItem>
+                                <SelectItem value="Actif">Client</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </NotionPropertyRow>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="rounded-xl border bg-background divide-y">
-                      <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+                    <div className="pt-3 border-t bg-background shrink-0">
+                      <SheetFooter className="mt-0">
+                        <Button type="submit" disabled={creating}>
+                          {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                          Ajouter le client
+                        </Button>
+                      </SheetFooter>
+                    </div>
+                  </form>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            <div className="w-full overflow-hidden rounded-2xl bg-muted/30 p-4 sm:p-6">
+              <Image
+                src="/clients.jpg"
+                alt="Clients"
+                width={1600}
+                height={1000}
+                className="h-auto w-full max-h-[520px] object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={clients} 
+          searchKey="name" 
+          searchPlaceholder="Rechercher un client..."
+          onRowClick={(client) => router.push(`/dashboard/clients/${client.id}`)}
+          actionButton={
+            <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <SheetTrigger asChild>
+                <Button>
+                  <Plus data-icon="inline-start" />
+                  Nouveau client
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md overflow-hidden flex flex-col">
+                <SheetHeader className="pb-2 shrink-0">
+                  <Breadcrumb>
+                    <BreadcrumbList>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                          <Link href="/dashboard">Dashboard</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                          <Link href="/dashboard/clients">Clients</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>Nouveau client</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
+                  <SheetTitle>Nouveau client</SheetTitle>
+                  <SheetDescription>
+                    Ajoutez un nouveau client à votre base.
+                  </SheetDescription>
+                </SheetHeader>
+                <form onSubmit={handleCreateClient} className="flex flex-col flex-1 min-h-0 gap-4">
+                  <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                    <div className="space-y-4 pb-2">
+                      <div className="px-1">
                         <Input
-                          id="email"
-                          type="email"
-                          placeholder="email@exemple.com"
-                          value={newClientEmail}
-                          onChange={(e) => setNewClientEmail(e.target.value)}
-                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          id="name"
+                          placeholder="Nom du client"
+                          value={newClientName}
+                          onChange={(e) => setNewClientName(e.target.value)}
+                          required
+                          className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
                         />
-                      </NotionPropertyRow>
-                      <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="+225 XX XX XX XX"
-                          value={newClientPhone}
-                          onChange={(e) => setNewClientPhone(e.target.value)}
-                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
-                        />
-                      </NotionPropertyRow>
-                      <NotionPropertyRow label="Entreprise" icon={<Building2 className="h-4 w-4" />}>
-                        <Input
-                          id="company"
-                          placeholder="Nom de l'entreprise"
-                          value={newClientCompany}
-                          onChange={(e) => setNewClientCompany(e.target.value)}
-                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
-                        />
-                      </NotionPropertyRow>
-                      <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
-                        <Select
-                          value={newClientStatus}
-                          onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
-                        >
-                          <SelectTrigger className="h-8 border-0 bg-transparent px-2">
-                            <SelectValue placeholder="Choisir le type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Prospect">Prospect</SelectItem>
-                            <SelectItem value="Actif">Client</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </NotionPropertyRow>
+                      </div>
+
+                      <div className="rounded-xl border bg-background divide-y">
+                        <NotionPropertyRow label="Email" icon={<Mail className="h-4 w-4" />}>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="email@exemple.com"
+                            value={newClientEmail}
+                            onChange={(e) => setNewClientEmail(e.target.value)}
+                            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          />
+                        </NotionPropertyRow>
+                        <NotionPropertyRow label="Téléphone" icon={<Phone className="h-4 w-4" />}>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            placeholder="+225 XX XX XX XX"
+                            value={newClientPhone}
+                            onChange={(e) => setNewClientPhone(e.target.value)}
+                            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          />
+                        </NotionPropertyRow>
+                        <NotionPropertyRow label="Entreprise" icon={<Building2 className="h-4 w-4" />}>
+                          <Input
+                            id="company"
+                            placeholder="Nom de l'entreprise"
+                            value={newClientCompany}
+                            onChange={(e) => setNewClientCompany(e.target.value)}
+                            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          />
+                        </NotionPropertyRow>
+                        <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                          <Select
+                            value={newClientStatus}
+                            onValueChange={(v) => setNewClientStatus(v as "Prospect" | "Actif")}
+                          >
+                            <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                              <SelectValue placeholder="Choisir le type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Prospect">Prospect</SelectItem>
+                              <SelectItem value="Actif">Client</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </NotionPropertyRow>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <SheetFooter>
-                  <Button type="submit" disabled={creating}>
-                    {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Ajouter le client
-                  </Button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
-        }
-      />
+
+                  <div className="pt-3 border-t bg-background shrink-0">
+                    <SheetFooter className="mt-0">
+                      <Button type="submit" disabled={creating}>
+                        {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Ajouter le client
+                      </Button>
+                    </SheetFooter>
+                  </div>
+                </form>
+              </SheetContent>
+            </Sheet>
+          }
+        />
+      )}
     </>
   );
 }

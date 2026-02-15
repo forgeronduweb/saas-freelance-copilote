@@ -21,7 +21,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, Mail, Phone, Building, Bell, Shield, CreditCard, Loader2, Check, Monitor, Smartphone, Tablet, LogOut } from "lucide-react";
+import {
+  Calendar,
+  ExternalLink,
+  Landmark,
+  Link2,
+  MessageSquare,
+  User,
+  Mail,
+  Phone,
+  Building,
+  Bell,
+  Shield,
+  CreditCard,
+  Loader2,
+  Check,
+  Monitor,
+  Smartphone,
+  Tablet,
+  LogOut,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const profileSchema = z.object({
@@ -64,9 +83,45 @@ interface NotificationSetting {
   enabled: boolean;
 }
 
+type IntegrationKey = "google_calendar" | "slack" | "bank";
+
+type IntegrationItem = {
+  key: IntegrationKey;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  learnMoreUrl: string;
+};
+
+const integrations: IntegrationItem[] = [
+  {
+    key: "google_calendar",
+    title: "Google Calendar",
+    description: "Synchronisez vos RDV et vos échéances.",
+    icon: Calendar,
+    learnMoreUrl: "https://developers.google.com/calendar/api",
+  },
+  {
+    key: "slack",
+    title: "Slack",
+    description: "Recevez des notifications en temps réel.",
+    icon: MessageSquare,
+    learnMoreUrl: "https://api.slack.com/",
+  },
+  {
+    key: "bank",
+    title: "Connexion bancaire",
+    description: "Rapprochez automatiquement paiements et factures.",
+    icon: Landmark,
+    learnMoreUrl: "https://plaid.com/docs/",
+  },
+];
+
 export default function SettingsPage() {
   const router = useRouter();
   const { user, refetch } = useAuth();
+  const [isProfileEditing, setIsProfileEditing] = useState(false);
+  const [isSecurityEditing, setIsSecurityEditing] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -88,6 +143,12 @@ export default function SettingsPage() {
     { key: "events", title: "Événements planning", desc: "Rappels avant vos rendez-vous", enabled: true },
     { key: "newsletter", title: "Newsletter", desc: "Recevoir notre newsletter mensuelle", enabled: false },
   ]);
+
+  const [connectedIntegrations, setConnectedIntegrations] = useState<Record<IntegrationKey, boolean>>({
+    google_calendar: false,
+    slack: false,
+    bank: false,
+  });
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -120,6 +181,28 @@ export default function SettingsPage() {
       });
     }
   }, [user, profileForm]);
+
+  const cancelProfileEditing = () => {
+    if (user) {
+      profileForm.reset({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        companyName: user.companyName || "",
+      });
+    }
+    setProfileError(null);
+    setProfileSuccess(false);
+    setIsProfileEditing(false);
+  };
+
+  const cancelSecurityEditing = () => {
+    passwordForm.reset();
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    setIsSecurityEditing(false);
+  };
 
   const fetchDeviceSessions = async () => {
     setDeviceSessionsLoading(true);
@@ -229,6 +312,7 @@ export default function SettingsPage() {
       if (res.ok) {
         setProfileSuccess(true);
         await refetch();
+        setIsProfileEditing(false);
         setTimeout(() => setProfileSuccess(false), 3000);
       } else {
         setProfileError(result.error || 'Erreur lors de la mise à jour');
@@ -261,6 +345,7 @@ export default function SettingsPage() {
       if (res.ok) {
         setPasswordSuccess(true);
         passwordForm.reset();
+        setIsSecurityEditing(false);
         setTimeout(() => setPasswordSuccess(false), 3000);
       } else {
         setPasswordError(result.error || 'Erreur lors du changement');
@@ -276,6 +361,10 @@ export default function SettingsPage() {
     setNotifications(prev =>
       prev.map(n => n.key === key ? { ...n, enabled: !n.enabled } : n)
     );
+  };
+
+  const toggleIntegration = (key: IntegrationKey) => {
+    setConnectedIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleDeleteAccount = async () => {
@@ -371,10 +460,29 @@ export default function SettingsPage() {
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" /> Profil
-              </CardTitle>
-              <CardDescription>Informations de votre profil public.</CardDescription>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" /> Profil
+                  </CardTitle>
+                  <CardDescription>Informations de votre profil public.</CardDescription>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (isProfileEditing) {
+                      cancelProfileEditing();
+                      return;
+                    }
+                    setIsProfileEditing(true);
+                  }}
+                >
+                  {isProfileEditing ? "Annuler" : "Editer"}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-4">
@@ -385,7 +493,9 @@ export default function SettingsPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <Button type="button" variant="outline" size="sm">Changer la photo</Button>
+                    <Button type="button" variant="outline" size="sm" disabled={!isProfileEditing}>
+                      Changer la photo
+                    </Button>
                     <p className="text-xs text-muted-foreground mt-1">JPG, PNG. Max 2MB.</p>
                   </div>
                 </div>
@@ -393,12 +503,20 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field data-invalid={!!profileForm.formState.errors.firstName}>
                     <FieldLabel>Prénom</FieldLabel>
-                    <Input {...profileForm.register("firstName")} placeholder="Votre prénom" />
+                    <Input
+                      {...profileForm.register("firstName")}
+                      placeholder="Votre prénom"
+                      disabled={!isProfileEditing}
+                    />
                     <FieldError errors={[profileForm.formState.errors.firstName]} />
                   </Field>
                   <Field data-invalid={!!profileForm.formState.errors.lastName}>
                     <FieldLabel>Nom</FieldLabel>
-                    <Input {...profileForm.register("lastName")} placeholder="Votre nom" />
+                    <Input
+                      {...profileForm.register("lastName")}
+                      placeholder="Votre nom"
+                      disabled={!isProfileEditing}
+                    />
                     <FieldError errors={[profileForm.formState.errors.lastName]} />
                   </Field>
                 </div>
@@ -406,34 +524,50 @@ export default function SettingsPage() {
                   <FieldLabel className="flex items-center gap-1">
                     <Mail className="h-3 w-3" /> Email
                   </FieldLabel>
-                  <Input {...profileForm.register("email")} type="email" placeholder="votre@email.com" />
+                  <Input
+                    {...profileForm.register("email")}
+                    type="email"
+                    placeholder="votre@email.com"
+                    disabled={!isProfileEditing}
+                  />
                   <FieldError errors={[profileForm.formState.errors.email]} />
                 </Field>
                 <Field>
                   <FieldLabel className="flex items-center gap-1">
                     <Phone className="h-3 w-3" /> Téléphone
                   </FieldLabel>
-                  <Input {...profileForm.register("phone")} type="tel" placeholder="+33 6 00 00 00 00" />
+                  <Input
+                    {...profileForm.register("phone")}
+                    type="tel"
+                    placeholder="+225 00 00 00 00 00"
+                    disabled={!isProfileEditing}
+                  />
                 </Field>
                 <Field>
                   <FieldLabel className="flex items-center gap-1">
                     <Building className="h-3 w-3" /> Entreprise
                   </FieldLabel>
-                  <Input {...profileForm.register("companyName")} placeholder="Nom de votre entreprise" />
+                  <Input
+                    {...profileForm.register("companyName")}
+                    placeholder="Nom de votre entreprise"
+                    disabled={!isProfileEditing}
+                  />
                 </Field>
 
                 {profileError && (
                   <p className="text-sm text-red-500">{profileError}</p>
                 )}
 
-                <Button type="submit" disabled={profileSaving} className="w-full sm:w-auto">
-                  {profileSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : profileSuccess ? (
-                    <Check className="h-4 w-4 mr-2" />
-                  ) : null}
-                  {profileSuccess ? "Sauvegardé" : "Sauvegarder"}
-                </Button>
+                {isProfileEditing ? (
+                  <Button type="submit" disabled={profileSaving} className="w-full sm:w-auto">
+                    {profileSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : profileSuccess ? (
+                      <Check className="h-4 w-4 mr-2" />
+                    ) : null}
+                    {profileSuccess ? "Sauvegardé" : "Sauvegarder"}
+                  </Button>
+                ) : null}
               </form>
             </CardContent>
           </Card>
@@ -464,26 +598,118 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" /> Sécurité
+                <Link2 className="h-5 w-5" /> Intégrations
               </CardTitle>
-              <CardDescription>Paramètres de sécurité de votre compte.</CardDescription>
+              <CardDescription>Connectez vos outils (paiements, automatisations, etc.).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {integrations.map((integration, index) => {
+                const Icon = integration.icon;
+                const isConnected = connectedIntegrations[integration.key];
+
+                return (
+                  <div key={integration.key}>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md border bg-muted/30">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-sm truncate">{integration.title}</p>
+                            {isConnected ? (
+                              <Badge>Connecté</Badge>
+                            ) : (
+                              <Badge variant="outline">Non connecté</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{integration.description}</p>
+                          <a
+                            href={integration.learnMoreUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            En savoir plus <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={isConnected ? "outline" : "default"}
+                          size="sm"
+                          onClick={() => toggleIntegration(integration.key)}
+                        >
+                          {isConnected ? "Déconnecter" : "Connecter"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {index < integrations.length - 1 && <Separator className="my-4" />}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" /> Sécurité
+                  </CardTitle>
+                  <CardDescription>Paramètres de sécurité de votre compte.</CardDescription>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (isSecurityEditing) {
+                      cancelSecurityEditing();
+                      return;
+                    }
+                    setIsSecurityEditing(true);
+                  }}
+                >
+                  {isSecurityEditing ? "Annuler" : "Editer"}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-4">
                 <Field data-invalid={!!passwordForm.formState.errors.currentPassword}>
                   <FieldLabel>Mot de passe actuel</FieldLabel>
-                  <Input {...passwordForm.register("currentPassword")} type="password" placeholder="••••••••" />
+                  <Input
+                    {...passwordForm.register("currentPassword")}
+                    type="password"
+                    placeholder="••••••••"
+                    disabled={!isSecurityEditing}
+                  />
                   <FieldError errors={[passwordForm.formState.errors.currentPassword]} />
                 </Field>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field data-invalid={!!passwordForm.formState.errors.newPassword}>
                     <FieldLabel>Nouveau mot de passe</FieldLabel>
-                    <Input {...passwordForm.register("newPassword")} type="password" placeholder="••••••••" />
+                    <Input
+                      {...passwordForm.register("newPassword")}
+                      type="password"
+                      placeholder="••••••••"
+                      disabled={!isSecurityEditing}
+                    />
                     <FieldError errors={[passwordForm.formState.errors.newPassword]} />
                   </Field>
                   <Field data-invalid={!!passwordForm.formState.errors.confirmPassword}>
                     <FieldLabel>Confirmer</FieldLabel>
-                    <Input {...passwordForm.register("confirmPassword")} type="password" placeholder="••••••••" />
+                    <Input
+                      {...passwordForm.register("confirmPassword")}
+                      type="password"
+                      placeholder="••••••••"
+                      disabled={!isSecurityEditing}
+                    />
                     <FieldError errors={[passwordForm.formState.errors.confirmPassword]} />
                   </Field>
                 </div>
@@ -492,14 +718,21 @@ export default function SettingsPage() {
                   <p className="text-sm text-red-500">{passwordError}</p>
                 )}
 
-                <Button type="submit" variant="outline" disabled={passwordSaving} className="w-full sm:w-auto">
-                  {passwordSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : passwordSuccess ? (
-                    <Check className="h-4 w-4 mr-2" />
-                  ) : null}
-                  {passwordSuccess ? "Modifié" : "Changer le mot de passe"}
-                </Button>
+                {isSecurityEditing ? (
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={passwordSaving}
+                    className="w-full sm:w-auto"
+                  >
+                    {passwordSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : passwordSuccess ? (
+                      <Check className="h-4 w-4 mr-2" />
+                    ) : null}
+                    {passwordSuccess ? "Modifié" : "Changer le mot de passe"}
+                  </Button>
+                ) : null}
 
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -507,7 +740,9 @@ export default function SettingsPage() {
                     <p className="font-medium text-sm">Authentification à deux facteurs</p>
                     <p className="text-xs text-muted-foreground">Ajoutez une couche de sécurité supplémentaire</p>
                   </div>
-                  <Button type="button" variant="outline" size="sm">Configurer</Button>
+                  <Button type="button" variant="outline" size="sm" disabled={!isSecurityEditing}>
+                    Configurer
+                  </Button>
                 </div>
               </form>
             </CardContent>

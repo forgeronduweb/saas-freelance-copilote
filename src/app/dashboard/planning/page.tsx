@@ -1,12 +1,21 @@
 "use client";
 import { useMemo, useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { NotionPropertyRow } from "@/components/ui/notion-property-row";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 type Event = {
   id: string;
@@ -291,89 +301,234 @@ export default function PlanningPage() {
         </DialogContent>
       </Dialog>
 
-      <DataTable 
-        columns={columns} 
-        data={events} 
-        searchKey="title" 
-        searchPlaceholder="Rechercher un événement..."
-        onRowClick={(event) => router.push(`/dashboard/planning/${event.id}`)}
-        actionButton={
-          <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <SheetTrigger asChild>
-              <Button>
-                <Plus data-icon="inline-start" />
-                Nouvel événement
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full sm:max-w-md">
-              <SheetHeader>
-                <SheetTitle>Nouvel événement</SheetTitle>
-                <SheetDescription>
-                  Créez un nouvel événement dans votre planning.
-                </SheetDescription>
-              </SheetHeader>
-              <form onSubmit={handleCreateEvent}>
-                <div className="py-4">
-                  <div className="space-y-4">
-                    <div className="px-1">
-                      <Input
-                        id="title"
-                        placeholder="Nom de l'événement"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        required
-                        className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
-                      />
+      {events.length === 0 ? (
+        <div className="p-6 sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Planning</h1>
+                <p className="text-muted-foreground">
+                  Organisez vos rendez-vous, deadlines et événements. Visualisez votre planning et ne manquez aucune échéance.
+                </p>
+              </div>
+
+              <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <SheetTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus data-icon="inline-start" />
+                    Créer un événement
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md overflow-hidden flex flex-col">
+                  <SheetHeader className="pb-2 shrink-0">
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        <BreadcrumbItem>
+                          <BreadcrumbLink asChild>
+                            <Link href="/dashboard">Dashboard</Link>
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbLink asChild>
+                            <Link href="/dashboard/planning">Planning</Link>
+                          </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbPage>Nouvel événement</BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                    <SheetTitle>Nouvel événement</SheetTitle>
+                    <SheetDescription>
+                      Créez un nouvel événement dans votre planning.
+                    </SheetDescription>
+                  </SheetHeader>
+                  <form onSubmit={handleCreateEvent} className="flex flex-col flex-1 min-h-0 gap-4">
+                    <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                      <div className="space-y-4 pb-2">
+                        <div className="px-1">
+                          <Input
+                            id="title"
+                            placeholder="Nom de l'événement"
+                            value={newTitle}
+                            onChange={(e) => setNewTitle(e.target.value)}
+                            required
+                            className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
+                          />
+                        </div>
+
+                        <div className="rounded-xl border bg-background divide-y">
+                          <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
+                            <Input
+                              id="date"
+                              type="date"
+                              value={newDate}
+                              onChange={(e) => setNewDate(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+
+                          <NotionPropertyRow label="Heure" icon={<Clock className="h-4 w-4" />}>
+                            <Input
+                              id="time"
+                              type="time"
+                              value={newTime}
+                              onChange={(e) => setNewTime(e.target.value)}
+                              className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                            />
+                          </NotionPropertyRow>
+
+                          <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                            <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>
+                              <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                                <SelectValue placeholder="Choisir" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Réunion">Réunion</SelectItem>
+                                <SelectItem value="Appel">Appel</SelectItem>
+                                <SelectItem value="Deadline">Deadline</SelectItem>
+                                <SelectItem value="Autre">Autre</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </NotionPropertyRow>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="rounded-xl border bg-background divide-y">
-                      <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={newDate}
-                          onChange={(e) => setNewDate(e.target.value)}
-                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
-                        />
-                      </NotionPropertyRow>
+                    <div className="pt-3 border-t bg-background shrink-0">
+                      <SheetFooter className="mt-0">
+                        <Button type="submit" disabled={creating}>
+                          {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                          Créer l’événement
+                        </Button>
+                      </SheetFooter>
+                    </div>
+                  </form>
+                </SheetContent>
+              </Sheet>
+            </div>
 
-                      <NotionPropertyRow label="Heure" icon={<Clock className="h-4 w-4" />}>
+            <div className="w-full overflow-hidden rounded-2xl bg-muted/30 p-4 sm:p-6">
+              <Image
+                src="/agenda.jpg"
+                alt="Planning"
+                width={1600}
+                height={1000}
+                className="h-auto w-full max-h-[520px] object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={events} 
+          searchKey="title" 
+          searchPlaceholder="Rechercher un événement..."
+          onRowClick={(event) => router.push(`/dashboard/planning/${event.id}`)}
+          actionButton={
+            <Sheet open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <SheetTrigger asChild>
+                <Button>
+                  <Plus data-icon="inline-start" />
+                  Nouvel événement
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:max-w-md overflow-hidden flex flex-col">
+                <SheetHeader className="pb-2 shrink-0">
+                  <Breadcrumb>
+                    <BreadcrumbList>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                          <Link href="/dashboard">Dashboard</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                          <Link href="/dashboard/planning">Planning</Link>
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>Nouvel événement</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
+                  <SheetTitle>Nouvel événement</SheetTitle>
+                  <SheetDescription>
+                    Créez un nouvel événement dans votre planning.
+                  </SheetDescription>
+                </SheetHeader>
+                <form onSubmit={handleCreateEvent} className="flex flex-col flex-1 min-h-0 gap-4">
+                  <div className="flex-1 min-h-0 overflow-y-auto pr-2 -mr-2">
+                    <div className="space-y-4 pb-2">
+                      <div className="px-1">
                         <Input
-                          id="time"
-                          type="time"
-                          value={newTime}
-                          onChange={(e) => setNewTime(e.target.value)}
-                          className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          id="title"
+                          placeholder="Nom de l'événement"
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
+                          required
+                          className="h-12 px-0 border-0 bg-transparent text-2xl sm:text-3xl font-semibold tracking-tight focus-visible:ring-0"
                         />
-                      </NotionPropertyRow>
+                      </div>
 
-                      <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
-                        <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>
-                          <SelectTrigger className="h-8 border-0 bg-transparent px-2">
-                            <SelectValue placeholder="Choisir" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Réunion">Réunion</SelectItem>
-                            <SelectItem value="Appel">Appel</SelectItem>
-                            <SelectItem value="Deadline">Deadline</SelectItem>
-                            <SelectItem value="Autre">Autre</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </NotionPropertyRow>
+                      <div className="rounded-xl border bg-background divide-y">
+                        <NotionPropertyRow label="Date" icon={<Calendar className="h-4 w-4" />}>
+                          <Input
+                            id="date"
+                            type="date"
+                            value={newDate}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          />
+                        </NotionPropertyRow>
+
+                        <NotionPropertyRow label="Heure" icon={<Clock className="h-4 w-4" />}>
+                          <Input
+                            id="time"
+                            type="time"
+                            value={newTime}
+                            onChange={(e) => setNewTime(e.target.value)}
+                            className="h-8 border-0 bg-transparent px-2 focus-visible:ring-0"
+                          />
+                        </NotionPropertyRow>
+
+                        <NotionPropertyRow label="Type" icon={<Tag className="h-4 w-4" />}>
+                          <Select value={newType} onValueChange={(v) => setNewType(v as Event["type"])}>
+                            <SelectTrigger className="h-8 border-0 bg-transparent px-2">
+                              <SelectValue placeholder="Choisir" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Réunion">Réunion</SelectItem>
+                              <SelectItem value="Appel">Appel</SelectItem>
+                              <SelectItem value="Deadline">Deadline</SelectItem>
+                              <SelectItem value="Autre">Autre</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </NotionPropertyRow>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <SheetFooter>
-                  <Button type="submit" disabled={creating}>
-                    {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Créer l'événement
-                  </Button>
-                </SheetFooter>
-              </form>
-            </SheetContent>
-          </Sheet>
-        }
-      />
+
+                  <div className="pt-3 border-t bg-background shrink-0">
+                    <SheetFooter className="mt-0">
+                      <Button type="submit" disabled={creating}>
+                        {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Créer l’événement
+                      </Button>
+                    </SheetFooter>
+                  </div>
+                </form>
+              </SheetContent>
+            </Sheet>
+          }
+        />
+      )}
     </>
   );
 }

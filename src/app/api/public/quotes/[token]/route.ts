@@ -27,8 +27,8 @@ type QuoteDocument = QuoteForMission & {
   refusedAt?: unknown;
   status: string;
   publicToken?: string;
-  validUntil?: { toISOString?: () => string } | string;
-  suggestions?: Array<{ message: string; createdAt: { toISOString?: () => string } | string }>;
+  validUntil?: Date | string;
+  suggestions?: Array<{ message: string; createdAt?: Date | string }>;
 };
 
 type PublicProvider = {
@@ -154,12 +154,12 @@ function serializeQuote(quote: QuoteDocument, provider: PublicProvider | null) {
     description: quote.description,
     items: quote.items,
     total: quote.total,
-    validUntil: quote.validUntil?.toISOString?.().split("T")[0] ?? quote.validUntil,
+    validUntil: quote.validUntil instanceof Date ? quote.validUntil.toISOString().split("T")[0] : quote.validUntil,
     status: quote.status,
     provider,
     suggestions: (quote.suggestions || []).map((s) => ({
       message: s.message,
-      createdAt: s.createdAt?.toISOString?.() ?? s.createdAt,
+      createdAt: s.createdAt instanceof Date ? s.createdAt.toISOString() : s.createdAt,
     })),
   };
 }
